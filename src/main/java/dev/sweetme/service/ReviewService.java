@@ -73,7 +73,7 @@ public class ReviewService {
         Review review = findById(id);
         boolean isAdmin = adminPassword != null && adminPassword.equals(adminKey);
         if (!isAdmin && !passwordEncoder.matches(rawPassword, review.getPasswordHash())) {
-            throw new RuntimeException("비밀번호가 올바르지 않습니다.");
+            throw new SecurityException("비밀번호가 올바르지 않습니다.");
         }
         return review.getPortfolioLink();
     }

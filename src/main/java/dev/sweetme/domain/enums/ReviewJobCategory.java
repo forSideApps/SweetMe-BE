@@ -3,6 +3,7 @@ package dev.sweetme.domain.enums;
 public enum ReviewJobCategory {
     BACKEND("백엔드"),
     FRONTEND("프론트"),
+    MOBILE("모바일"),
     OTHER("기타");
 
     private final String displayName;

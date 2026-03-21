@@ -45,6 +45,11 @@ public class CompanyService {
     }
 
     @Transactional
+    public void delete(Long id) {
+        companyRepository.deleteById(id);
+    }
+
+    @Transactional
     public Company create(String name, String slug, String accentColor, Integer displayOrder) {
         if (companyRepository.existsBySlug(slug)) {
             throw new IllegalArgumentException("이미 존재하는 slug입니다: " + slug);

@@ -98,6 +98,13 @@ public class CompanyController {
         return ResponseEntity.ok(CompanyDto.from(company, logoBaseUrl()));
     }
 
+    /** 어드민: 회사 삭제 */
+    @DeleteMapping("/api/admin/companies/{id}")
+    public ResponseEntity<Void> adminDelete(@PathVariable Long id) {
+        companyService.delete(id);
+        return ResponseEntity.ok().build();
+    }
+
     /** 어드민: 회사 로고 업로드 → OCI Object Storage */
     @PostMapping("/api/admin/companies/{id}/logo")
     public ResponseEntity<Map<String, String>> adminUploadLogo(

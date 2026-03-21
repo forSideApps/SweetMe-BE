@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 OCI Object Storage 마이그레이션 스크립트
-기존 버킷 루트의 파일들을 WithStudy/ 하위로 이동합니다.
+WithStudy/ 폴더의 파일들을 SweetMe/ 하위로 이동합니다.
 
 사전 요구사항:
   pip install oci
@@ -13,17 +13,18 @@ OCI Object Storage 마이그레이션 스크립트
 import io
 import oci
 
-NAMESPACE = "axw45xvpnfol"
-BUCKET    = "MyBucket"
-REGION    = "ap-chuncheon-1"
-TARGET_PREFIX = "WithStudy/"
+NAMESPACE     = "axw45xvpnfol"
+BUCKET        = "MyBucket"
+REGION        = "ap-chuncheon-1"
+SOURCE_PREFIX = "WithStudy/"
+TARGET_PREFIX = "SweetMe/"
 
 def main():
     config = oci.config.from_file("~/.oci/config", "DEFAULT")
     client = oci.object_storage.ObjectStorageClient(config)
 
     print(f"버킷: {BUCKET} / 네임스페이스: {NAMESPACE}")
-    print(f"루트 객체 → {TARGET_PREFIX} 로 이동 시작\n")
+    print(f"{SOURCE_PREFIX} → {TARGET_PREFIX} 이동 시작\n")
 
     # 전체 객체 목록 수집 (페이지네이션 처리)
     objects = []
@@ -36,16 +37,16 @@ def main():
         else:
             break
 
-    targets = [o for o in objects if not o.name.startswith(TARGET_PREFIX)]
+    targets = [o for o in objects if o.name.startswith(SOURCE_PREFIX)]
     if not targets:
-        print("이동할 파일이 없습니다. (이미 모두 WithStudy/ 아래에 있거나 버킷이 비어있음)")
+        print("이동할 파일이 없습니다. (WithStudy/ 아래에 파일 없음)")
         return
 
     print(f"이동 대상: {len(targets)}개\n")
 
     for obj in targets:
         src = obj.name
-        dst = TARGET_PREFIX + src
+        dst = TARGET_PREFIX + src[len(SOURCE_PREFIX):]
         print(f"  {src}  →  {dst}")
 
         # 다운로드
@@ -60,7 +61,7 @@ def main():
         client.delete_object(NAMESPACE, BUCKET, src)
         print(f"    완료")
 
-    print(f"\n마이그레이션 완료: {len(targets)}개 파일 이동됨")
+    print(f"\n마이그레이션 완료: {len(targets)}개 파일 이동됨 (WithStudy/ → SweetMe/)")
 
 if __name__ == "__main__":
     main()
