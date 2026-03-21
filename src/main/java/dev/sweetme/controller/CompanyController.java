@@ -32,7 +32,7 @@ public class CompanyController {
 
     private String logoBaseUrl() {
         return String.format(
-                "https://objectstorage.%s.oraclecloud.com/n/%s/b/%s/o/WithStudy/",
+                "https://objectstorage.%s.oraclecloud.com/n/%s/b/%s/o/sweetme/",
                 region, namespace, bucket
         );
     }
@@ -105,7 +105,7 @@ public class CompanyController {
             @RequestParam("file") MultipartFile file) {
 
         var company = companyService.findById(id);
-        String objectName = "WithStudy/" + company.getSlug() + ".png";
+        String objectName = "sweetme/" + company.getSlug() + ".png";
 
         try {
             String url = ociStorageService.upload(objectName, file);
