@@ -8,6 +8,7 @@ import dev.sweetme.dto.response.ReviewDetailDto;
 import dev.sweetme.dto.response.ReviewSummaryDto;
 import dev.sweetme.service.ReviewService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,9 @@ import java.util.Map;
 public class ReviewApiController {
 
     private final ReviewService reviewService;
+
+    @Value("${app.admin.password}")
+    private String adminPassword;
 
     @GetMapping
     public Page<ReviewSummaryDto> getReviews(
@@ -125,7 +129,12 @@ public class ReviewApiController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteReview(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteReview(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey) {
+        if (adminKey == null || !adminKey.equals(adminPassword)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         reviewService.delete(id);
         return ResponseEntity.ok().build();
     }

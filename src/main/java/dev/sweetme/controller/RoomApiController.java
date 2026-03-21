@@ -29,6 +29,9 @@ public class RoomApiController {
     private final RoomApplicationService roomApplicationService;
     private final OciStorageService ociStorageService;
 
+    @Value("${app.admin.password}")
+    private String adminPassword;
+
     @Value("${app.oci.namespace}")
     private String namespace;
 
@@ -171,6 +174,17 @@ public class RoomApiController {
             @RequestParam String password) {
         if (!roomService.verifyPassword(id, password)) return unauthorized();
         roomService.reopenRoom(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteRoom(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey) {
+        if (adminKey == null || !adminKey.equals(adminPassword)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        roomService.delete(id);
         return ResponseEntity.ok().build();
     }
 

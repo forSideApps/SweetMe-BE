@@ -85,6 +85,11 @@ public class RoomService {
         return room;
     }
 
+    @Transactional
+    public void delete(Long id) {
+        roomRepository.deleteById(id);
+    }
+
     private RoomStatus parseStatus(String value) {
         return (value != null && !value.isBlank()) ? RoomStatus.valueOf(value) : null;
     }
