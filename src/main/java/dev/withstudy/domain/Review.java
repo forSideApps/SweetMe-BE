@@ -54,6 +54,9 @@ public class Review {
     @Column(name = "contact_info", length = 200)
     private String contactInfo;
 
+    @Column(name = "portfolio_link", length = 500)
+    private String portfolioLink;
+
     @Column(name = "password_hash", length = 100)
     private String passwordHash;
 
@@ -74,13 +77,14 @@ public class Review {
     }
 
     public void update(ReviewType type, ReviewJobCategory jobCategory, CareerLevel careerLevel,
-                       String title, String content, String contactInfo) {
+                       String title, String content, String contactInfo, String portfolioLink) {
         this.type = type;
         this.jobCategory = jobCategory;
         this.careerLevel = careerLevel;
         this.title = title;
         this.content = content;
         this.contactInfo = contactInfo;
+        this.portfolioLink = portfolioLink;
     }
 
     public void markDone() {

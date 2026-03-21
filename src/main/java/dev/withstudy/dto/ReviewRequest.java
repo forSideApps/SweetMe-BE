@@ -12,4 +12,5 @@ public class ReviewRequest {
     private String authorName;
     private String contactInfo;
     private String password;
+    private String portfolioLink;
 }

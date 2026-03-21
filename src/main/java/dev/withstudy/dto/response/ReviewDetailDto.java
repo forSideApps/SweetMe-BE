@@ -25,6 +25,7 @@ public class ReviewDetailDto {
     private final Integer viewCount;
     private final LocalDateTime createdAt;
     private final List<ReviewCommentDto> comments;
+    private final boolean hasPortfolioLink;
 
     private ReviewDetailDto(Review r) {
         this.id = r.getId();
@@ -45,6 +46,7 @@ public class ReviewDetailDto {
         this.comments = r.getComments().stream()
                 .map(ReviewCommentDto::from)
                 .collect(Collectors.toList());
+        this.hasPortfolioLink = r.getPortfolioLink() != null && !r.getPortfolioLink().isBlank();
     }
 
     public static ReviewDetailDto from(Review r) {

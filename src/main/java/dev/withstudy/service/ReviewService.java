@@ -52,6 +52,7 @@ public class ReviewService {
                 .content(request.getContent())
                 .authorName(request.getAuthorName())
                 .contactInfo(request.getContactInfo())
+                .portfolioLink(request.getPortfolioLink())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .build();
         return reviewRepository.save(review);
@@ -59,6 +60,15 @@ public class ReviewService {
 
     public boolean verifyPassword(Long id, String rawPassword) {
         return passwordEncoder.matches(rawPassword, findById(id).getPasswordHash());
+    }
+
+    @Transactional(readOnly = true)
+    public String getPortfolioLink(Long id, String rawPassword) {
+        Review review = findById(id);
+        if (!passwordEncoder.matches(rawPassword, review.getPasswordHash())) {
+            throw new RuntimeException("비밀번호가 올바르지 않습니다.");
+        }
+        return review.getPortfolioLink();
     }
 
     @Transactional
@@ -70,7 +80,8 @@ public class ReviewService {
                 CareerLevel.valueOf(request.getCareerLevel()),
                 request.getTitle(),
                 request.getContent(),
-                request.getContactInfo()
+                request.getContactInfo(),
+                request.getPortfolioLink()
         );
         return review;
     }

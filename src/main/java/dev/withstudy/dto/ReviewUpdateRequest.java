@@ -10,4 +10,5 @@ public class ReviewUpdateRequest {
     private String title;
     private String content;
     private String contactInfo;
+    private String portfolioLink;
 }

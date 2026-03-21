@@ -85,6 +85,13 @@ public class ReviewApiController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/{id}/link")
+    public ResponseEntity<?> getPortfolioLink(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String link = reviewService.getPortfolioLink(id, body.get("password"));
+        if (link == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        return ResponseEntity.ok(Map.of("link", link));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReview(@PathVariable Long id) {
         reviewService.delete(id);
