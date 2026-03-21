@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 env:
-  BACKEND_IMAGE: ghcr.io/forsideapps/withstudy-backend
+  BACKEND_IMAGE: ghcr.io/forsideapps/sweetme-backend
 
 jobs:
   build-and-deploy:
@@ -53,7 +53,7 @@ jobs:
           envs: DB_USERNAME,DB_PASSWORD,WALLET_BASE64,OCI_BASE64,GHCR_TOKEN,GHCR_USER
           script: |
             set -e
-            APP_DIR=/home/ubuntu/withstudy
+            APP_DIR=/home/ubuntu/sweetme
 
             mkdir -p $APP_DIR/backend/wallet
             echo "$WALLET_BASE64" | base64 -d | tar -xz -C $APP_DIR/backend/
