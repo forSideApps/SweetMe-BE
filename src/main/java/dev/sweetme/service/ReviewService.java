@@ -116,7 +116,7 @@ public class ReviewService {
                 ? passwordEncoder.encode(request.getPassword()) : null;
         ReviewComment comment = ReviewComment.builder()
                 .review(review)
-                .authorName(isAdmin ? "방장" : request.getAuthorName())
+                .authorName(isAdmin ? "운영자" : request.getAuthorName())
                 .content(request.getContent())
                 .isAdmin(isAdmin)
                 .passwordHash(hash)
@@ -125,21 +125,27 @@ public class ReviewService {
     }
 
     @Transactional
-    public void updateComment(Long commentId, String password, String content) {
+    public void updateComment(Long commentId, String password, String content, String adminKey) {
         ReviewComment comment = reviewCommentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
-        if (comment.getPasswordHash() == null || !passwordEncoder.matches(password, comment.getPasswordHash())) {
-            throw new SecurityException("비밀번호가 올바르지 않습니다.");
+        boolean isAdmin = adminPassword != null && adminPassword.equals(adminKey);
+        if (!isAdmin) {
+            if (comment.getPasswordHash() == null || !passwordEncoder.matches(password, comment.getPasswordHash())) {
+                throw new SecurityException("비밀번호가 올바르지 않습니다.");
+            }
         }
         comment.updateContent(content);
     }
 
     @Transactional
-    public void deleteComment(Long commentId, String password) {
+    public void deleteComment(Long commentId, String password, String adminKey) {
         ReviewComment comment = reviewCommentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
-        if (comment.getPasswordHash() == null || !passwordEncoder.matches(password, comment.getPasswordHash())) {
-            throw new SecurityException("비밀번호가 올바르지 않습니다.");
+        boolean isAdmin = adminPassword != null && adminPassword.equals(adminKey);
+        if (!isAdmin) {
+            if (comment.getPasswordHash() == null || !passwordEncoder.matches(password, comment.getPasswordHash())) {
+                throw new SecurityException("비밀번호가 올바르지 않습니다.");
+            }
         }
         reviewCommentRepository.delete(comment);
     }

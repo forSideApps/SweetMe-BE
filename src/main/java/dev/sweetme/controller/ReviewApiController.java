@@ -95,9 +95,10 @@ public class ReviewApiController {
     public ResponseEntity<Void> updateComment(
             @PathVariable Long id,
             @PathVariable Long commentId,
+            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey,
             @RequestBody CommentUpdateRequest request) {
         try {
-            reviewService.updateComment(commentId, request.getPassword(), request.getContent());
+            reviewService.updateComment(commentId, request.getPassword(), request.getContent(), adminKey);
             return ResponseEntity.ok().build();
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -108,9 +109,10 @@ public class ReviewApiController {
     public ResponseEntity<Void> deleteComment(
             @PathVariable Long id,
             @PathVariable Long commentId,
-            @RequestBody Map<String, String> body) {
+            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey,
+            @RequestBody(required = false) Map<String, String> body) {
         try {
-            reviewService.deleteComment(commentId, body.get("password"));
+            reviewService.deleteComment(commentId, body != null ? body.get("password") : null, adminKey);
             return ResponseEntity.ok().build();
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
