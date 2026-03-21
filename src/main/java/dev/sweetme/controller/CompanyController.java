@@ -120,7 +120,7 @@ public class CompanyController {
         } catch (Exception e) {
             log.error("로고 업로드 실패: {}", e.getMessage());
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "업로드 실패: " + e.getMessage()));
+                    .body(Map.of("message", "파일 업로드에 실패했습니다."));
         }
     }
 }

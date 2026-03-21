@@ -7,6 +7,7 @@ import dev.sweetme.dto.ReviewUpdateRequest;
 import dev.sweetme.dto.response.ReviewDetailDto;
 import dev.sweetme.dto.response.ReviewSummaryDto;
 import dev.sweetme.service.ReviewService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -50,7 +51,7 @@ public class ReviewApiController {
     }
 
     @PostMapping
-    public Map<String, Long> createReview(@RequestBody ReviewRequest request) {
+    public Map<String, Long> createReview(@Valid @RequestBody ReviewRequest request) {
         var review = reviewService.create(request);
         return Map.of("id", review.getId());
     }
