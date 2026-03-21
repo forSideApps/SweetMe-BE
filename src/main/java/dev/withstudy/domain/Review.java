@@ -6,6 +6,7 @@ import dev.withstudy.domain.enums.ReviewStatus;
 import dev.withstudy.domain.enums.ReviewType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -69,6 +70,7 @@ public class Review {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL)
+    @BatchSize(size = 15)
     @Builder.Default
     private List<ReviewComment> comments = new ArrayList<>();
 

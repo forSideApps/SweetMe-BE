@@ -11,6 +11,7 @@ import dev.withstudy.dto.ReviewUpdateRequest;
 import dev.withstudy.repository.ReviewCommentRepository;
 import dev.withstudy.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -25,6 +26,9 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ReviewCommentRepository reviewCommentRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+
+    @Value("${app.admin.password}")
+    private String adminPassword;
 
     @Transactional(readOnly = true)
     public Page<Review> findReviews(String type, String jobCategory, String careerLevel, String keyword, int page) {
@@ -104,10 +108,12 @@ public class ReviewService {
     @Transactional
     public void addComment(Long reviewId, CommentRequest request) {
         Review review = findById(reviewId);
+        boolean isAdmin = adminPassword != null && adminPassword.equals(request.getAdminKey());
         ReviewComment comment = ReviewComment.builder()
                 .review(review)
-                .authorName(request.getAuthorName())
+                .authorName(isAdmin ? "방장" : request.getAuthorName())
                 .content(request.getContent())
+                .isAdmin(isAdmin)
                 .build();
         reviewCommentRepository.save(comment);
     }

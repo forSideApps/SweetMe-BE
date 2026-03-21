@@ -165,6 +165,15 @@ public class RoomApiController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/{id}/reopen")
+    public ResponseEntity<Void> reopenRoom(
+            @PathVariable Long id,
+            @RequestParam String password) {
+        if (!roomService.verifyPassword(id, password)) return unauthorized();
+        roomService.reopenRoom(id);
+        return ResponseEntity.ok().build();
+    }
+
     private <T> ResponseEntity<T> unauthorized() {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }

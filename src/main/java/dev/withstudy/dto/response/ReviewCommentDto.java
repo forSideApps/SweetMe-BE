@@ -11,12 +11,14 @@ public class ReviewCommentDto {
     private final String authorName;
     private final String content;
     private final LocalDateTime createdAt;
+    private final boolean isAdmin;
 
     private ReviewCommentDto(ReviewComment c) {
         this.id = c.getId();
         this.authorName = c.getAuthorName();
         this.content = c.getContent();
         this.createdAt = c.getCreatedAt();
+        this.isAdmin = c.getIsAdmin() != null && c.getIsAdmin();
     }
 
     public static ReviewCommentDto from(ReviewComment c) {

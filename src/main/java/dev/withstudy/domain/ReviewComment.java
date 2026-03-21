@@ -29,6 +29,10 @@ public class ReviewComment {
     @Column(name = "author_name", nullable = false, length = 50)
     private String authorName;
 
+    @Column(name = "is_admin")
+    @Builder.Default
+    private Boolean isAdmin = false;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

@@ -73,6 +73,11 @@ public class RoomService {
     }
 
     @Transactional
+    public void reopenRoom(Long roomId) {
+        findById(roomId).updateStatus(RoomStatus.OPEN);
+    }
+
+    @Transactional
     public Room updateRoom(Long roomId, RoomUpdateRequest request) {
         Room room = findById(roomId);
         room.update(request.getTitle(), request.getDescription(), request.getMaxMembers(),
