@@ -43,6 +43,7 @@ public class CommunityPost {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    @OrderBy("createdAt ASC")
     @Builder.Default
     private List<CommunityComment> comments = new ArrayList<>();
 
