@@ -6,8 +6,11 @@ import dev.sweetme.domain.RoomApplication;
 import dev.sweetme.dto.response.PostSummaryDto;
 import dev.sweetme.dto.response.ReviewSummaryDto;
 import dev.sweetme.dto.response.RoomSummaryDto;
+import dev.sweetme.domain.Review;
+import dev.sweetme.domain.ReviewExchange;
 import dev.sweetme.repository.CommunityPostRepository;
 import dev.sweetme.repository.MemberRepository;
+import dev.sweetme.repository.ReviewExchangeRepository;
 import dev.sweetme.repository.ReviewRepository;
 import dev.sweetme.repository.RoomApplicationRepository;
 import dev.sweetme.repository.RoomRepository;
@@ -36,6 +39,7 @@ public class AuthController {
     private final ReviewRepository reviewRepository;
     private final CommunityPostRepository communityPostRepository;
     private final RoomApplicationRepository roomApplicationRepository;
+    private final ReviewExchangeRepository reviewExchangeRepository;
 
     @Value("${app.oci.namespace}") private String ociNamespace;
     @Value("${app.oci.bucket}") private String ociBucket;
@@ -140,6 +144,52 @@ public class AuthController {
         return ResponseEntity.ok(posts);
     }
 
+    @GetMapping("/me/exchanges")
+    public ResponseEntity<?> myExchanges(HttpSession session) {
+        String username = (String) session.getAttribute("member_username");
+        if (username == null) return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요합니다."));
+
+        List<Long> myReviewIds = reviewRepository.findByMemberUsernameOrderByCreatedAtDesc(username)
+                .stream().map(Review::getId).toList();
+        if (myReviewIds.isEmpty()) return ResponseEntity.ok(List.of());
+
+        // 내 글에 서로보기 요청이 온 것 (내 글이 target)
+        List<ReviewExchange> received = reviewExchangeRepository.findByTargetReviewIdIn(myReviewIds);
+        // 내가 서로보기 요청한 것 (내 글이 requester)
+        List<ReviewExchange> sent = reviewExchangeRepository.findByRequesterReviewIdIn(myReviewIds);
+
+        List<Long> allReviewIds = new java.util.ArrayList<>();
+        received.forEach(e -> { allReviewIds.add(e.getRequesterReviewId()); allReviewIds.add(e.getTargetReviewId()); });
+        sent.forEach(e -> { allReviewIds.add(e.getRequesterReviewId()); allReviewIds.add(e.getTargetReviewId()); });
+
+        Map<Long, Review> reviewMap = reviewRepository.findAllById(allReviewIds)
+                .stream().collect(java.util.stream.Collectors.toMap(Review::getId, r -> r));
+
+        List<ExchangeDto> result = new java.util.ArrayList<>();
+        received.forEach(e -> {
+            Review myReview = reviewMap.get(e.getTargetReviewId());
+            Review theirReview = reviewMap.get(e.getRequesterReviewId());
+            if (myReview != null && theirReview != null) {
+                result.add(new ExchangeDto(e.getId(), "RECEIVED",
+                        myReview.getId(), myReview.getTitle(),
+                        theirReview.getId(), theirReview.getTitle(),
+                        theirReview.getMemberUsername(), e.getCreatedAt()));
+            }
+        });
+        sent.forEach(e -> {
+            Review myReview = reviewMap.get(e.getRequesterReviewId());
+            Review theirReview = reviewMap.get(e.getTargetReviewId());
+            if (myReview != null && theirReview != null) {
+                result.add(new ExchangeDto(e.getId(), "SENT",
+                        myReview.getId(), myReview.getTitle(),
+                        theirReview.getId(), theirReview.getTitle(),
+                        theirReview.getMemberUsername(), e.getCreatedAt()));
+            }
+        });
+        result.sort(java.util.Comparator.comparing(ExchangeDto::createdAt).reversed());
+        return ResponseEntity.ok(result);
+    }
+
     @PutMapping("/profile")
     @Transactional
     public ResponseEntity<?> updateProfile(@RequestBody ProfileRequest req, HttpSession session) {
@@ -174,5 +224,12 @@ public class AuthController {
     public record MyApplicationDto(
         Long id, Long roomId, String roomTitle, String themeName,
         String status, String statusDisplay, java.time.LocalDateTime createdAt
+    ) {}
+
+    public record ExchangeDto(
+        Long id, String direction,
+        Long myReviewId, String myReviewTitle,
+        Long theirReviewId, String theirReviewTitle,
+        String theirUsername, java.time.LocalDateTime createdAt
     ) {}
 }

@@ -111,6 +111,9 @@ public class ReviewService {
     @Transactional
     public Review update(Long id, ReviewUpdateRequest request) {
         Review review = findById(id);
+        if (review.getStatus() == dev.sweetme.domain.enums.ReviewStatus.DONE) {
+            throw new IllegalStateException("검토가 완료된 글은 수정할 수 없습니다.");
+        }
         review.update(
                 ReviewType.valueOf(request.getType()),
                 ReviewJobCategory.valueOf(request.getJobCategory()),
