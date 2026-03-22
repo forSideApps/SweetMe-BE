@@ -15,6 +15,7 @@ public class CommentDto {
 
     private Long id;
     private String authorName;
+    private String memberUsername;
     private String content;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
@@ -23,6 +24,7 @@ public class CommentDto {
         return new CommentDto(
                 comment.getId(),
                 comment.getAuthorName(),
+                comment.getMemberUsername(),
                 comment.getContent(),
                 comment.getCreatedAt()
         );

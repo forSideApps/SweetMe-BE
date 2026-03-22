@@ -6,6 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface CommunityPostRepository extends JpaRepository<CommunityPost, Long> {
 
     Page<CommunityPost> findByCategoryOrderByCreatedAtDesc(PostCategory category, Pageable pageable);
@@ -15,4 +17,6 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
     Page<CommunityPost> findByTitleContainingIgnoreCaseOrderByCreatedAtDesc(String keyword, Pageable pageable);
 
     Page<CommunityPost> findByCategoryAndTitleContainingIgnoreCaseOrderByCreatedAtDesc(PostCategory category, String keyword, Pageable pageable);
+
+    List<CommunityPost> findByMemberUsernameOrderByCreatedAtDesc(String memberUsername);
 }

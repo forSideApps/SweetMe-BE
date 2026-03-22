@@ -50,6 +50,9 @@ public class Room {
     @Column(name = "creator_nickname", nullable = false, length = 50)
     private String creatorNickname;
 
+    @Column(name = "member_username", length = 50)
+    private String memberUsername;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private RoomStatus status = RoomStatus.OPEN;

@@ -52,23 +52,33 @@ public class RoomService {
     }
 
     @Transactional
-    public Room create(Long companyId, RoomCreateRequest request) {
+    public Room create(Long companyId, RoomCreateRequest request, String memberUsername) {
+        String hash = (request.getPassword() != null && !request.getPassword().isBlank())
+                ? passwordEncoder.encode(request.getPassword()) : null;
         Room room = Room.builder()
                 .company(companyService.findById(companyId))
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .maxMembers(request.getMaxMembers())
                 .creatorNickname(request.getCreatorNickname())
-                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .passwordHash(hash)
                 .kakaoLink(request.getKakaoLink())
                 .requirements(request.getRequirements())
                 .jobRole(request.getJobRole())
+                .memberUsername(memberUsername)
                 .build();
         return roomRepository.save(room);
     }
 
     public boolean verifyPassword(Long roomId, String rawPassword) {
-        return passwordEncoder.matches(rawPassword, findById(roomId).getPasswordHash());
+        String hash = findById(roomId).getPasswordHash();
+        return hash != null && passwordEncoder.matches(rawPassword, hash);
+    }
+
+    public boolean isOwner(Long roomId, String username) {
+        if (username == null) return false;
+        String ownerUsername = findById(roomId).getMemberUsername();
+        return username.equals(ownerUsername);
     }
 
     @Transactional

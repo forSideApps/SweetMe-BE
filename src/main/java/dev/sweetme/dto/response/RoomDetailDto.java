@@ -32,6 +32,7 @@ public class RoomDetailDto {
     private String kakaoLink;
     private String jobRole;
     private String jobRoleDisplay;
+    private String memberUsername;
 
     public static RoomDetailDto from(Room room, String logoBaseUrl) {
         return from(room, logoBaseUrl, false);
@@ -56,7 +57,8 @@ public class RoomDetailDto {
                 room.getRequirements(),
                 includeKakaoLink ? room.getKakaoLink() : null,
                 room.getJobRole() != null ? room.getJobRole().name() : null,
-                room.getJobRole() != null ? room.getJobRole().getDisplayName() : null
+                room.getJobRole() != null ? room.getJobRole().getDisplayName() : null,
+                room.getMemberUsername()
         );
     }
 }

@@ -17,7 +17,5 @@ public class CommentRequest {
     @Size(min = 2, max = 1000, message = "댓글은 2~1000자로 입력해주세요.")
     private String content;
 
-    private String adminKey;
-
     private String password;
 }

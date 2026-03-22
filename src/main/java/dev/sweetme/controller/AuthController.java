@@ -2,17 +2,25 @@ package dev.sweetme.controller;
 
 import dev.sweetme.domain.Member;
 import dev.sweetme.domain.enums.MemberRole;
+import dev.sweetme.dto.response.PostSummaryDto;
+import dev.sweetme.dto.response.ReviewSummaryDto;
+import dev.sweetme.dto.response.RoomSummaryDto;
+import dev.sweetme.repository.CommunityPostRepository;
 import dev.sweetme.repository.MemberRepository;
+import dev.sweetme.repository.ReviewRepository;
+import dev.sweetme.repository.RoomRepository;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -22,6 +30,17 @@ public class AuthController {
 
     private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final RoomRepository roomRepository;
+    private final ReviewRepository reviewRepository;
+    private final CommunityPostRepository communityPostRepository;
+
+    @Value("${app.oci.namespace}") private String ociNamespace;
+    @Value("${app.oci.bucket}") private String ociBucket;
+    @Value("${app.oci.region}") private String ociRegion;
+
+    private String logoBaseUrl() {
+        return String.format("https://objectstorage.%s.oraclecloud.com/n/%s/b/%s/o/SweetMe/", ociRegion, ociNamespace, ociBucket);
+    }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest req) {
@@ -72,6 +91,33 @@ public class AuthController {
                         m.getUsername(), m.getRole().name(), m.getEmail(),
                         m.getJobRole(), m.getCareerLevel(), m.getAlgoGrade())))
                 .orElse(ResponseEntity.status(401).body(Map.of("message", "사용자를 찾을 수 없습니다.")));
+    }
+
+    @GetMapping("/me/rooms")
+    public ResponseEntity<?> myRooms(HttpSession session) {
+        String username = (String) session.getAttribute("member_username");
+        if (username == null) return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요합니다."));
+        List<RoomSummaryDto> rooms = roomRepository.findByMemberUsernameOrderByCreatedAtDesc(username)
+                .stream().map(r -> RoomSummaryDto.from(r, logoBaseUrl())).toList();
+        return ResponseEntity.ok(rooms);
+    }
+
+    @GetMapping("/me/reviews")
+    public ResponseEntity<?> myReviews(HttpSession session) {
+        String username = (String) session.getAttribute("member_username");
+        if (username == null) return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요합니다."));
+        List<ReviewSummaryDto> reviews = reviewRepository.findByMemberUsernameOrderByCreatedAtDesc(username)
+                .stream().map(ReviewSummaryDto::from).toList();
+        return ResponseEntity.ok(reviews);
+    }
+
+    @GetMapping("/me/posts")
+    public ResponseEntity<?> myPosts(HttpSession session) {
+        String username = (String) session.getAttribute("member_username");
+        if (username == null) return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요합니다."));
+        List<PostSummaryDto> posts = communityPostRepository.findByMemberUsernameOrderByCreatedAtDesc(username)
+                .stream().map(PostSummaryDto::from).toList();
+        return ResponseEntity.ok(posts);
     }
 
     @PutMapping("/profile")

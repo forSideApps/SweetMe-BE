@@ -142,6 +142,26 @@ public class ReviewApiController {
         }
     }
 
+    @PostMapping("/{id}/exchange")
+    public ResponseEntity<?> exchange(
+            @PathVariable Long id,
+            @RequestBody Map<String, Long> body,
+            HttpServletRequest httpRequest) {
+        String username = getSessionUsername(httpRequest);
+        if (username == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "로그인이 필요합니다."));
+        try {
+            Long myReviewId = body.get("myReviewId");
+            if (myReviewId == null) return ResponseEntity.badRequest().body(Map.of("message", "내 글을 선택해주세요."));
+            String link = reviewService.createExchange(id, myReviewId, username);
+            if (link == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "링크가 등록되지 않은 글입니다."));
+            return ResponseEntity.ok(Map.of("link", link));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReview(@PathVariable Long id, HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

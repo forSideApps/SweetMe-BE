@@ -55,7 +55,9 @@ public class CommunityApiController {
                 return ResponseEntity.status(403).body(Map.of("message", "공지사항은 어드민만 작성할 수 있습니다."));
             }
         }
-        var post = communityService.createPost(request);
+        String memberUsername = getSessionUsername(httpRequest);
+        if (memberUsername != null) request.setAuthorName(memberUsername);
+        var post = communityService.createPost(request, memberUsername);
         return ResponseEntity.ok(Map.of("id", post.getId()));
     }
 

@@ -29,6 +29,9 @@ public class ReviewComment {
     @Column(name = "author_name", nullable = false, length = 50)
     private String authorName;
 
+    @Column(name = "member_username", length = 50)
+    private String memberUsername;
+
     @Column(name = "is_admin")
     @Builder.Default
     private Boolean isAdmin = false;

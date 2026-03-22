@@ -3,12 +3,15 @@ package dev.sweetme.config;
 import dev.sweetme.domain.Company;
 import dev.sweetme.domain.CommunityComment;
 import dev.sweetme.domain.CommunityPost;
+import dev.sweetme.domain.Member;
 import dev.sweetme.domain.Room;
 import dev.sweetme.domain.enums.JobRole;
+import dev.sweetme.domain.enums.MemberRole;
 import dev.sweetme.domain.enums.PostCategory;
 import dev.sweetme.repository.CompanyRepository;
 import dev.sweetme.repository.CommunityCommentRepository;
 import dev.sweetme.repository.CommunityPostRepository;
+import dev.sweetme.repository.MemberRepository;
 import dev.sweetme.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,11 +36,23 @@ public class DataInitializer implements ApplicationRunner {
     private final RoomRepository roomRepository;
     private final CommunityPostRepository communityPostRepository;
     private final CommunityCommentRepository communityCommentRepository;
+    private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
+
+        // admin 계정 초기화
+        if (!memberRepository.existsByUsername("admin")) {
+            memberRepository.save(Member.builder()
+                    .username("admin")
+                    .password(passwordEncoder.encode("admin1234"))
+                    .email(null)
+                    .role(MemberRole.ADMIN)
+                    .build());
+            log.info("admin 계정 초기화 완료");
+        }
 
         // 회사 초기화
         if (companyRepository.count() == 0) {

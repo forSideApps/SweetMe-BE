@@ -9,7 +9,9 @@ import dev.sweetme.domain.ReviewComment;
 import dev.sweetme.dto.CommentRequest;
 import dev.sweetme.dto.ReviewRequest;
 import dev.sweetme.dto.ReviewUpdateRequest;
+import dev.sweetme.domain.ReviewExchange;
 import dev.sweetme.repository.ReviewCommentRepository;
+import dev.sweetme.repository.ReviewExchangeRepository;
 import dev.sweetme.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +29,7 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final ReviewCommentRepository reviewCommentRepository;
+    private final ReviewExchangeRepository exchangeRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Value("${app.page.review-size:15}")
@@ -75,12 +78,34 @@ public class ReviewService {
     public String getPortfolioLink(Long id, String rawPassword, boolean isAdmin, String memberUsername) {
         Review review = findById(id);
         boolean isOwner = memberUsername != null && memberUsername.equals(review.getMemberUsername());
-        if (!isAdmin && !isOwner) {
+        boolean hasExchangeAccess = memberUsername != null && exchangeRepository.hasAccessToRequesterLink(id, memberUsername);
+        if (!isAdmin && !isOwner && !hasExchangeAccess) {
             if (review.getPasswordHash() == null || !passwordEncoder.matches(rawPassword, review.getPasswordHash())) {
                 throw new SecurityException("비밀번호가 올바르지 않습니다.");
             }
         }
         return review.getPortfolioLink();
+    }
+
+    /** 서로보기: myReviewId 제공 → targetReviewId 링크 반환 */
+    @Transactional
+    public String createExchange(Long targetReviewId, Long myReviewId, String sessionUsername) {
+        Review myReview = findById(myReviewId);
+        if (!sessionUsername.equals(myReview.getMemberUsername())) {
+            throw new SecurityException("본인의 글만 제공할 수 있습니다.");
+        }
+        Review targetReview = findById(targetReviewId);
+        if (sessionUsername.equals(targetReview.getMemberUsername())) {
+            throw new IllegalArgumentException("자신의 글과는 교환할 수 없습니다.");
+        }
+        // 이미 교환했으면 링크 바로 반환
+        if (!exchangeRepository.existsByRequesterReviewIdAndTargetReviewId(myReviewId, targetReviewId)) {
+            exchangeRepository.save(ReviewExchange.builder()
+                    .requesterReviewId(myReviewId)
+                    .targetReviewId(targetReviewId)
+                    .build());
+        }
+        return targetReview.getPortfolioLink();
     }
 
     @Transactional

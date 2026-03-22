@@ -21,11 +21,9 @@ public class RoomCreateRequest {
     @Max(value = 10, message = "최대 10명까지 가능합니다.")
     private Integer maxMembers;
 
-    @NotBlank(message = "닉네임을 입력해주세요.")
     @Size(max = 50, message = "닉네임은 50자 이내로 입력해주세요.")
     private String creatorNickname;
 
-    @NotBlank(message = "방 관리 비밀번호를 설정해주세요.")
     @Size(min = 4, max = 20, message = "비밀번호는 4~20자로 입력해주세요.")
     private String password;
 

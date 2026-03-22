@@ -45,12 +45,13 @@ public class CommunityService {
     }
 
     @Transactional
-    public CommunityPost createPost(CommunityPostRequest request) {
+    public CommunityPost createPost(CommunityPostRequest request, String memberUsername) {
         CommunityPost post = CommunityPost.builder()
                 .category(request.getCategory())
                 .title(request.getTitle())
                 .content(request.getContent())
                 .authorName(request.getAuthorName())
+                .memberUsername(memberUsername)
                 .build();
         return postRepository.save(post);
     }
@@ -61,12 +62,33 @@ public class CommunityService {
     }
 
     @Transactional
-    public CommunityComment addComment(Long postId, CommentRequest request) {
+    public CommunityComment addComment(Long postId, CommentRequest request, String memberUsername) {
         CommunityComment comment = CommunityComment.builder()
                 .post(findById(postId))
                 .content(request.getContent())
                 .authorName(request.getAuthorName())
+                .memberUsername(memberUsername)
                 .build();
         return commentRepository.save(comment);
+    }
+
+    @Transactional
+    public void updateComment(Long commentId, String content, String memberUsername, boolean isAdmin) {
+        CommunityComment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+        if (!isAdmin && (memberUsername == null || !memberUsername.equals(comment.getMemberUsername()))) {
+            throw new SecurityException("수정 권한이 없습니다.");
+        }
+        comment.updateContent(content);
+    }
+
+    @Transactional
+    public void deleteComment(Long commentId, String memberUsername, boolean isAdmin) {
+        CommunityComment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+        if (!isAdmin && (memberUsername == null || !memberUsername.equals(comment.getMemberUsername()))) {
+            throw new SecurityException("댓글을 삭제할 권한이 없습니다.");
+        }
+        commentRepository.delete(comment);
     }
 }

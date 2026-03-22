@@ -34,6 +34,9 @@ public class CommunityPost {
     @Column(name = "author_name", nullable = false, length = 50)
     private String authorName;
 
+    @Column(name = "member_username", length = 50)
+    private String memberUsername;
+
     @Column(name = "view_count")
     @Builder.Default
     private Integer viewCount = 0;

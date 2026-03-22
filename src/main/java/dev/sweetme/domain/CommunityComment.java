@@ -28,7 +28,14 @@ public class CommunityComment {
     @Column(name = "author_name", nullable = false, length = 50)
     private String authorName;
 
+    @Column(name = "member_username", length = 50)
+    private String memberUsername;
+
     @Builder.Default
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }

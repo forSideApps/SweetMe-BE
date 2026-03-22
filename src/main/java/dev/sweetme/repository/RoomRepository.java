@@ -36,6 +36,8 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     @Query("SELECT r FROM Room r ORDER BY r.createdAt DESC")
     List<Room> findRecentRooms(Pageable pageable);
 
+    List<Room> findByMemberUsernameOrderByCreatedAtDesc(String memberUsername);
+
     @Query("SELECT r FROM Room r WHERE " +
            "(:status IS NULL OR r.status = :status) " +
            "AND (:jobRole IS NULL OR r.jobRole = :jobRole) " +
