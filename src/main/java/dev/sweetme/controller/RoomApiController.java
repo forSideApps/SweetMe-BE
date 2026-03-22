@@ -10,6 +10,8 @@ import dev.sweetme.dto.response.RoomSummaryDto;
 import dev.sweetme.service.OciStorageService;
 import dev.sweetme.service.RoomApplicationService;
 import dev.sweetme.service.RoomService;
+import dev.sweetme.util.SessionHelper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -28,9 +30,6 @@ public class RoomApiController {
     private final RoomService roomService;
     private final RoomApplicationService roomApplicationService;
     private final OciStorageService ociStorageService;
-
-    @Value("${app.admin.password}")
-    private String adminPassword;
 
     @Value("${app.oci.namespace}")
     private String namespace;
@@ -84,8 +83,13 @@ public class RoomApiController {
     @PostMapping
     public Map<String, Long> createRoom(
             @RequestParam Long themeId,
-            @RequestBody RoomCreateRequest request) {
-        var room = roomService.create(themeId, request);
+            @RequestBody RoomCreateRequest request,
+            HttpServletRequest httpRequest) {
+        String memberUsername = SessionHelper.getUsername(httpRequest);
+        if (memberUsername != null) {
+            request.setCreatorNickname(memberUsername);
+        }
+        var room = roomService.create(themeId, request, memberUsername);
         return Map.of("id", room.getId());
     }
 
@@ -100,19 +104,20 @@ public class RoomApiController {
     @PostMapping("/{id}/manage/verify")
     public ResponseEntity<Map<String, Boolean>> verifyPassword(
             @PathVariable Long id,
-            @RequestBody Map<String, String> body) {
-        boolean valid = roomService.verifyPassword(id, body.get("password"));
-        if (!valid) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false));
+            @RequestBody Map<String, String> body,
+            HttpServletRequest httpRequest) {
+        if (canManage(id, body.get("password"), httpRequest)) {
+            return ResponseEntity.ok(Map.of("success", true));
         }
-        return ResponseEntity.ok(Map.of("success", true));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false));
     }
 
     @GetMapping("/{id}/manage/applications")
     public ResponseEntity<ManageDto> getApplications(
             @PathVariable Long id,
-            @RequestParam String password) {
-        if (!roomService.verifyPassword(id, password)) return unauthorized();
+            @RequestParam(required = false) String password,
+            HttpServletRequest httpRequest) {
+        if (!canManage(id, password, httpRequest)) return unauthorized();
         var room = roomService.findById(id);
         var applications = roomApplicationService.findByRoom(id);
         List<ApplicationDto> appDtos = applications.stream()
@@ -133,8 +138,9 @@ public class RoomApiController {
     public ResponseEntity<Void> approveApplication(
             @PathVariable Long id,
             @RequestParam Long roomId,
-            @RequestParam String password) {
-        if (!roomService.verifyPassword(roomId, password)) return unauthorized();
+            @RequestParam(required = false) String password,
+            HttpServletRequest httpRequest) {
+        if (!canManage(roomId, password, httpRequest)) return unauthorized();
         roomApplicationService.approve(id);
         return ResponseEntity.ok().build();
     }
@@ -143,8 +149,9 @@ public class RoomApiController {
     public ResponseEntity<Void> rejectApplication(
             @PathVariable Long id,
             @RequestParam Long roomId,
-            @RequestParam String password) {
-        if (!roomService.verifyPassword(roomId, password)) return unauthorized();
+            @RequestParam(required = false) String password,
+            HttpServletRequest httpRequest) {
+        if (!canManage(roomId, password, httpRequest)) return unauthorized();
         roomApplicationService.reject(id);
         return ResponseEntity.ok().build();
     }
@@ -152,9 +159,10 @@ public class RoomApiController {
     @PatchMapping("/{id}")
     public ResponseEntity<Void> updateRoom(
             @PathVariable Long id,
-            @RequestParam String password,
-            @RequestBody RoomUpdateRequest request) {
-        if (!roomService.verifyPassword(id, password)) return unauthorized();
+            @RequestParam(required = false) String password,
+            @RequestBody RoomUpdateRequest request,
+            HttpServletRequest httpRequest) {
+        if (!canManage(id, password, httpRequest)) return unauthorized();
         roomService.updateRoom(id, request);
         return ResponseEntity.ok().build();
     }
@@ -162,8 +170,9 @@ public class RoomApiController {
     @PostMapping("/{id}/close")
     public ResponseEntity<Void> closeRoom(
             @PathVariable Long id,
-            @RequestParam String password) {
-        if (!roomService.verifyPassword(id, password)) return unauthorized();
+            @RequestParam(required = false) String password,
+            HttpServletRequest httpRequest) {
+        if (!canManage(id, password, httpRequest)) return unauthorized();
         roomService.closeRoom(id);
         return ResponseEntity.ok().build();
     }
@@ -171,21 +180,23 @@ public class RoomApiController {
     @PostMapping("/{id}/reopen")
     public ResponseEntity<Void> reopenRoom(
             @PathVariable Long id,
-            @RequestParam String password) {
-        if (!roomService.verifyPassword(id, password)) return unauthorized();
+            @RequestParam(required = false) String password,
+            HttpServletRequest httpRequest) {
+        if (!canManage(id, password, httpRequest)) return unauthorized();
         roomService.reopenRoom(id);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRoom(
-            @PathVariable Long id,
-            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey) {
-        if (adminKey == null || !adminKey.equals(adminPassword)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+    public ResponseEntity<Void> deleteRoom(@PathVariable Long id, HttpServletRequest request) {
+        if (!SessionHelper.isAdmin(request)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         roomService.delete(id);
         return ResponseEntity.ok().build();
+    }
+
+    private boolean canManage(Long roomId, String password, HttpServletRequest request) {
+        if (roomService.isOwner(roomId, SessionHelper.getUsername(request))) return true;
+        return roomService.verifyPassword(roomId, password);
     }
 
     private <T> ResponseEntity<T> unauthorized() {

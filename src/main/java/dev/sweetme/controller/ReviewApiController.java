@@ -7,9 +7,10 @@ import dev.sweetme.dto.ReviewUpdateRequest;
 import dev.sweetme.dto.response.ReviewDetailDto;
 import dev.sweetme.dto.response.ReviewSummaryDto;
 import dev.sweetme.service.ReviewService;
+import dev.sweetme.util.SessionHelper;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +24,6 @@ import java.util.Map;
 public class ReviewApiController {
 
     private final ReviewService reviewService;
-
-    @Value("${app.admin.password}")
-    private String adminPassword;
 
     @GetMapping
     public Page<ReviewSummaryDto> getReviews(
@@ -51,8 +49,12 @@ public class ReviewApiController {
     }
 
     @PostMapping
-    public Map<String, Long> createReview(@Valid @RequestBody ReviewRequest request) {
-        var review = reviewService.create(request);
+    public Map<String, Long> createReview(@Valid @RequestBody ReviewRequest request, HttpServletRequest httpRequest) {
+        String memberUsername = getSessionUsername(httpRequest);
+        if (memberUsername != null) {
+            request.setAuthorName(memberUsername);
+        }
+        var review = reviewService.create(request, memberUsername);
         return Map.of("id", review.getId());
     }
 
@@ -73,13 +75,15 @@ public class ReviewApiController {
     }
 
     @PostMapping("/{id}/done")
-    public ResponseEntity<Void> markDone(@PathVariable Long id) {
+    public ResponseEntity<Void> markDone(@PathVariable Long id, HttpServletRequest request) {
+        if (!isAdmin(request)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         reviewService.markDone(id);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{id}/pending")
-    public ResponseEntity<Void> markPending(@PathVariable Long id) {
+    public ResponseEntity<Void> markPending(@PathVariable Long id, HttpServletRequest request) {
+        if (!isAdmin(request)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         reviewService.markPending(id);
         return ResponseEntity.ok().build();
     }
@@ -87,8 +91,13 @@ public class ReviewApiController {
     @PostMapping("/{id}/comments")
     public ResponseEntity<Void> addComment(
             @PathVariable Long id,
-            @RequestBody CommentRequest request) {
-        reviewService.addComment(id, request);
+            @RequestBody CommentRequest request,
+            HttpServletRequest httpRequest) {
+        String memberUsername = getSessionUsername(httpRequest);
+        if (memberUsername != null) {
+            request.setAuthorName(memberUsername);
+        }
+        reviewService.addComment(id, request, isAdmin(httpRequest), memberUsername);
         return ResponseEntity.ok().build();
     }
 
@@ -96,13 +105,13 @@ public class ReviewApiController {
     public ResponseEntity<Void> updateComment(
             @PathVariable Long id,
             @PathVariable Long commentId,
-            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey,
-            @RequestBody CommentUpdateRequest request) {
+            @RequestBody CommentUpdateRequest request,
+            HttpServletRequest httpRequest) {
         try {
-            reviewService.updateComment(commentId, request.getPassword(), request.getContent(), adminKey);
+            reviewService.updateComment(commentId, request.getContent(), isAdmin(httpRequest), getSessionUsername(httpRequest));
             return ResponseEntity.ok().build();
         } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 
@@ -110,20 +119,22 @@ public class ReviewApiController {
     public ResponseEntity<Void> deleteComment(
             @PathVariable Long id,
             @PathVariable Long commentId,
-            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey,
-            @RequestBody(required = false) Map<String, String> body) {
+            HttpServletRequest httpRequest) {
         try {
-            reviewService.deleteComment(commentId, body != null ? body.get("password") : null, adminKey);
+            reviewService.deleteComment(commentId, isAdmin(httpRequest), getSessionUsername(httpRequest));
             return ResponseEntity.ok().build();
         } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 
     @PostMapping("/{id}/link")
-    public ResponseEntity<?> getPortfolioLink(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> getPortfolioLink(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body,
+            HttpServletRequest httpRequest) {
         try {
-            String link = reviewService.getPortfolioLink(id, body.get("password"), body.get("adminKey"));
+            String link = reviewService.getPortfolioLink(id, body.get("password"), isAdmin(httpRequest), getSessionUsername(httpRequest));
             if (link == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             return ResponseEntity.ok(Map.of("link", link));
         } catch (SecurityException e) {
@@ -132,13 +143,17 @@ public class ReviewApiController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteReview(
-            @PathVariable Long id,
-            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey) {
-        if (adminKey == null || !adminKey.equals(adminPassword)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+    public ResponseEntity<Void> deleteReview(@PathVariable Long id, HttpServletRequest request) {
+        if (!isAdmin(request)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         reviewService.delete(id);
         return ResponseEntity.ok().build();
+    }
+
+    private boolean isAdmin(HttpServletRequest request) {
+        return SessionHelper.isAdmin(request);
+    }
+
+    private String getSessionUsername(HttpServletRequest request) {
+        return SessionHelper.getUsername(request);
     }
 }

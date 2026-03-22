@@ -6,8 +6,9 @@ import dev.sweetme.dto.CommunityPostRequest;
 import dev.sweetme.dto.response.PostDetailDto;
 import dev.sweetme.dto.response.PostSummaryDto;
 import dev.sweetme.service.CommunityService;
+import dev.sweetme.util.SessionHelper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,9 +21,6 @@ import java.util.Map;
 public class CommunityApiController {
 
     private final CommunityService communityService;
-
-    @Value("${app.admin.password}")
-    private String adminPassword;
 
     @GetMapping
     public Page<PostSummaryDto> getPosts(
@@ -50,10 +48,10 @@ public class CommunityApiController {
 
     @PostMapping
     public ResponseEntity<?> createPost(
-            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey,
-            @RequestBody CommunityPostRequest request) {
+            @RequestBody CommunityPostRequest request,
+            HttpServletRequest httpRequest) {
         if (PostCategory.NOTICE == request.getCategory()) {
-            if (adminKey == null || !adminKey.equals(adminPassword)) {
+            if (!isAdmin(httpRequest)) {
                 return ResponseEntity.status(403).body(Map.of("message", "공지사항은 어드민만 작성할 수 있습니다."));
             }
         }
@@ -62,10 +60,8 @@ public class CommunityApiController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePost(
-            @PathVariable Long id,
-            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey) {
-        if (adminKey == null || !adminKey.equals(adminPassword)) {
+    public ResponseEntity<Void> deletePost(@PathVariable Long id, HttpServletRequest httpRequest) {
+        if (!isAdmin(httpRequest)) {
             return ResponseEntity.status(403).build();
         }
         communityService.deletePost(id);
@@ -75,8 +71,41 @@ public class CommunityApiController {
     @PostMapping("/{id}/comments")
     public ResponseEntity<Void> addComment(
             @PathVariable Long id,
-            @RequestBody CommentRequest request) {
-        communityService.addComment(id, request);
+            @RequestBody CommentRequest request,
+            HttpServletRequest httpRequest) {
+        String memberUsername = getSessionUsername(httpRequest);
+        if (memberUsername != null) {
+            request.setAuthorName(memberUsername);
+        }
+        communityService.addComment(id, request, memberUsername);
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/comments/{commentId}")
+    public ResponseEntity<Void> updateComment(
+            @PathVariable Long id,
+            @PathVariable Long commentId,
+            @RequestBody Map<String, String> body,
+            HttpServletRequest httpRequest) {
+        communityService.updateComment(commentId, body.get("content"), getSessionUsername(httpRequest), isAdmin(httpRequest));
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}/comments/{commentId}")
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable Long id,
+            @PathVariable Long commentId,
+            HttpServletRequest httpRequest) {
+        String memberUsername = getSessionUsername(httpRequest);
+        communityService.deleteComment(commentId, memberUsername, isAdmin(httpRequest));
+        return ResponseEntity.ok().build();
+    }
+
+    private String getSessionUsername(HttpServletRequest request) {
+        return SessionHelper.getUsername(request);
+    }
+
+    private boolean isAdmin(HttpServletRequest request) {
+        return SessionHelper.isAdmin(request);
     }
 }

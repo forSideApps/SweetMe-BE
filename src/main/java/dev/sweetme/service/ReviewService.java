@@ -29,9 +29,6 @@ public class ReviewService {
     private final ReviewCommentRepository reviewCommentRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    @Value("${app.admin.password}")
-    private String adminPassword;
-
     @Value("${app.page.review-size:15}")
     private int pageSize;
 
@@ -51,7 +48,9 @@ public class ReviewService {
     }
 
     @Transactional
-    public Review create(ReviewRequest request) {
+    public Review create(ReviewRequest request, String memberUsername) {
+        String hash = (request.getPassword() != null && !request.getPassword().isBlank())
+                ? passwordEncoder.encode(request.getPassword()) : null;
         Review review = Review.builder()
                 .type(ReviewType.valueOf(request.getType()))
                 .jobCategory(ReviewJobCategory.valueOf(request.getJobCategory()))
@@ -61,20 +60,25 @@ public class ReviewService {
                 .authorName(request.getAuthorName())
                 .contactInfo(request.getContactInfo())
                 .portfolioLink(request.getPortfolioLink())
-                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .passwordHash(hash)
+                .memberUsername(memberUsername)
                 .build();
         return reviewRepository.save(review);
     }
 
     public boolean verifyPassword(Long id, String rawPassword) {
-        return passwordEncoder.matches(rawPassword, findById(id).getPasswordHash());
+        String hash = findById(id).getPasswordHash();
+        if (hash == null) return false;
+        return passwordEncoder.matches(rawPassword, hash);
     }
 
-    public String getPortfolioLink(Long id, String rawPassword, String adminKey) {
+    public String getPortfolioLink(Long id, String rawPassword, boolean isAdmin, String memberUsername) {
         Review review = findById(id);
-        boolean isAdmin = adminPassword != null && adminPassword.equals(adminKey);
-        if (!isAdmin && !passwordEncoder.matches(rawPassword, review.getPasswordHash())) {
-            throw new SecurityException("비밀번호가 올바르지 않습니다.");
+        boolean isOwner = memberUsername != null && memberUsername.equals(review.getMemberUsername());
+        if (!isAdmin && !isOwner) {
+            if (review.getPasswordHash() == null || !passwordEncoder.matches(rawPassword, review.getPasswordHash())) {
+                throw new SecurityException("비밀번호가 올바르지 않습니다.");
+            }
         }
         return review.getPortfolioLink();
     }
@@ -110,42 +114,37 @@ public class ReviewService {
     }
 
     @Transactional
-    public void addComment(Long reviewId, CommentRequest request) {
+    public void addComment(Long reviewId, CommentRequest request, boolean isAdmin, String memberUsername) {
         Review review = findById(reviewId);
-        boolean isAdmin = adminPassword != null && adminPassword.equals(request.getAdminKey());
-        String hash = (!isAdmin && request.getPassword() != null && !request.getPassword().isBlank())
-                ? passwordEncoder.encode(request.getPassword()) : null;
         ReviewComment comment = ReviewComment.builder()
                 .review(review)
                 .authorName(isAdmin ? "운영자" : request.getAuthorName())
                 .content(request.getContent())
                 .isAdmin(isAdmin)
-                .passwordHash(hash)
+                .memberUsername(isAdmin ? null : memberUsername)
                 .build();
         reviewCommentRepository.save(comment);
     }
 
     @Transactional
-    public void updateComment(Long commentId, String password, String content, String adminKey) {
+    public void updateComment(Long commentId, String content, boolean isAdmin, String memberUsername) {
         ReviewComment comment = reviewCommentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
-        boolean isAdmin = adminPassword != null && adminPassword.equals(adminKey);
         if (!isAdmin) {
-            if (comment.getPasswordHash() == null || !passwordEncoder.matches(password, comment.getPasswordHash())) {
-                throw new SecurityException("비밀번호가 올바르지 않습니다.");
+            if (memberUsername == null || !memberUsername.equals(comment.getMemberUsername())) {
+                throw new SecurityException("수정 권한이 없습니다.");
             }
         }
         comment.updateContent(content);
     }
 
     @Transactional
-    public void deleteComment(Long commentId, String password, String adminKey) {
+    public void deleteComment(Long commentId, boolean isAdmin, String memberUsername) {
         ReviewComment comment = reviewCommentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
-        boolean isAdmin = adminPassword != null && adminPassword.equals(adminKey);
         if (!isAdmin) {
-            if (comment.getPasswordHash() == null || !passwordEncoder.matches(password, comment.getPasswordHash())) {
-                throw new SecurityException("비밀번호가 올바르지 않습니다.");
+            if (memberUsername == null || !memberUsername.equals(comment.getMemberUsername())) {
+                throw new SecurityException("삭제 권한이 없습니다.");
             }
         }
         reviewCommentRepository.delete(comment);

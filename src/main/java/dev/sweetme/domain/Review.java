@@ -61,6 +61,9 @@ public class Review {
     @Column(name = "password_hash", length = 100)
     private String passwordHash;
 
+    @Column(name = "member_username", length = 50)
+    private String memberUsername;
+
     @Column(name = "view_count")
     @Builder.Default
     private Integer viewCount = 0;
