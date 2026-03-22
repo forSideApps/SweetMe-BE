@@ -46,6 +46,9 @@ public class RoomApplication {
     @Column(name = "contact_info", length = 200)
     private String contactInfo;
 
+    @Column(name = "member_username", length = 50)
+    private String memberUsername;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private ApplicationStatus status = ApplicationStatus.PENDING;

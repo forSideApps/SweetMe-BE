@@ -14,4 +14,6 @@ public interface RoomApplicationRepository extends JpaRepository<RoomApplication
     List<RoomApplication> findByRoomAndStatusOrderByCreatedAtDesc(Room room, ApplicationStatus status);
 
     long countByRoomAndStatus(Room room, ApplicationStatus status);
+
+    List<RoomApplication> findByMemberUsernameOrderByCreatedAtDesc(String memberUsername);
 }

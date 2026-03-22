@@ -96,8 +96,11 @@ public class RoomApiController {
     @PostMapping("/{id}/apply")
     public ResponseEntity<Void> apply(
             @PathVariable Long id,
-            @RequestBody ApplicationRequest request) {
-        roomApplicationService.apply(id, request);
+            @RequestBody ApplicationRequest request,
+            HttpServletRequest httpRequest) {
+        String memberUsername = SessionHelper.getUsername(httpRequest);
+        if (memberUsername != null) request.setApplicantName(memberUsername);
+        roomApplicationService.apply(id, request, memberUsername);
         return ResponseEntity.ok().build();
     }
 

@@ -32,7 +32,7 @@ public class RoomApplicationService {
     }
 
     @Transactional
-    public RoomApplication apply(Long roomId, ApplicationRequest request) {
+    public RoomApplication apply(Long roomId, ApplicationRequest request, String memberUsername) {
         Room room = roomRepository.findByIdWithLock(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("스터디 방을 찾을 수 없습니다."));
         if (room.getStatus() != dev.sweetme.domain.enums.RoomStatus.OPEN) {
@@ -46,6 +46,7 @@ public class RoomApplicationService {
                 .interviewCount(request.getInterviewCount())
                 .introduction(request.getIntroduction())
                 .contactInfo(request.getContactInfo())
+                .memberUsername(memberUsername)
                 .build();
         return applicationRepository.save(application);
     }

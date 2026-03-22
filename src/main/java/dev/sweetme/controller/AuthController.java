@@ -2,12 +2,14 @@ package dev.sweetme.controller;
 
 import dev.sweetme.domain.Member;
 import dev.sweetme.domain.enums.MemberRole;
+import dev.sweetme.domain.RoomApplication;
 import dev.sweetme.dto.response.PostSummaryDto;
 import dev.sweetme.dto.response.ReviewSummaryDto;
 import dev.sweetme.dto.response.RoomSummaryDto;
 import dev.sweetme.repository.CommunityPostRepository;
 import dev.sweetme.repository.MemberRepository;
 import dev.sweetme.repository.ReviewRepository;
+import dev.sweetme.repository.RoomApplicationRepository;
 import dev.sweetme.repository.RoomRepository;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -33,6 +35,7 @@ public class AuthController {
     private final RoomRepository roomRepository;
     private final ReviewRepository reviewRepository;
     private final CommunityPostRepository communityPostRepository;
+    private final RoomApplicationRepository roomApplicationRepository;
 
     @Value("${app.oci.namespace}") private String ociNamespace;
     @Value("${app.oci.bucket}") private String ociBucket;
@@ -111,6 +114,23 @@ public class AuthController {
         return ResponseEntity.ok(reviews);
     }
 
+    @GetMapping("/me/applications")
+    public ResponseEntity<?> myApplications(HttpSession session) {
+        String username = (String) session.getAttribute("member_username");
+        if (username == null) return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요합니다."));
+        List<MyApplicationDto> apps = roomApplicationRepository.findByMemberUsernameOrderByCreatedAtDesc(username)
+                .stream().map(a -> new MyApplicationDto(
+                        a.getId(),
+                        a.getRoom().getId(),
+                        a.getRoom().getTitle(),
+                        a.getRoom().getCompany().getName(),
+                        a.getStatus().name(),
+                        a.getStatus().getDisplayName(),
+                        a.getCreatedAt()
+                )).toList();
+        return ResponseEntity.ok(apps);
+    }
+
     @GetMapping("/me/posts")
     public ResponseEntity<?> myPosts(HttpSession session) {
         String username = (String) session.getAttribute("member_username");
@@ -149,5 +169,10 @@ public class AuthController {
     public record MeResponse(
         String username, String role, String email,
         String jobRole, String careerLevel, String algoGrade
+    ) {}
+
+    public record MyApplicationDto(
+        Long id, Long roomId, String roomTitle, String themeName,
+        String status, String statusDisplay, java.time.LocalDateTime createdAt
     ) {}
 }
