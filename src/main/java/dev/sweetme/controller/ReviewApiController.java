@@ -152,12 +152,39 @@ public class ReviewApiController {
         try {
             Long myReviewId = body.get("myReviewId");
             if (myReviewId == null) return ResponseEntity.badRequest().body(Map.of("message", "내 글을 선택해주세요."));
-            String link = reviewService.createExchange(id, myReviewId, username);
-            if (link == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "링크가 등록되지 않은 글입니다."));
-            return ResponseEntity.ok(Map.of("link", link));
+            reviewService.createExchangeRequest(id, myReviewId, username);
+            return ResponseEntity.ok(Map.of("message", "서로보기 요청이 전송되었습니다. 상대방이 수락하면 링크를 확인할 수 있습니다."));
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
         } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/exchanges/{exchangeId}/accept")
+    public ResponseEntity<?> acceptExchange(@PathVariable Long exchangeId, HttpServletRequest request) {
+        String username = getSessionUsername(request);
+        if (username == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "로그인이 필요합니다."));
+        try {
+            reviewService.acceptExchange(exchangeId, username);
+            return ResponseEntity.ok(Map.of("message", "서로보기 요청을 수락했습니다."));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/exchanges/{exchangeId}/reject")
+    public ResponseEntity<?> rejectExchange(@PathVariable Long exchangeId, HttpServletRequest request) {
+        String username = getSessionUsername(request);
+        if (username == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "로그인이 필요합니다."));
+        try {
+            reviewService.rejectExchange(exchangeId, username);
+            return ResponseEntity.ok(Map.of("message", "서로보기 요청을 거절했습니다."));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }

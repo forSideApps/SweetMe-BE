@@ -173,7 +173,8 @@ public class AuthController {
                 result.add(new ExchangeDto(e.getId(), "RECEIVED",
                         myReview.getId(), myReview.getTitle(),
                         theirReview.getId(), theirReview.getTitle(),
-                        theirReview.getMemberUsername(), e.getCreatedAt()));
+                        theirReview.getMemberUsername(), e.getCreatedAt(),
+                        e.getStatus().name()));
             }
         });
         sent.forEach(e -> {
@@ -183,7 +184,8 @@ public class AuthController {
                 result.add(new ExchangeDto(e.getId(), "SENT",
                         myReview.getId(), myReview.getTitle(),
                         theirReview.getId(), theirReview.getTitle(),
-                        theirReview.getMemberUsername(), e.getCreatedAt()));
+                        theirReview.getMemberUsername(), e.getCreatedAt(),
+                        e.getStatus().name()));
             }
         });
         result.sort(java.util.Comparator.comparing(ExchangeDto::createdAt).reversed());
@@ -230,6 +232,7 @@ public class AuthController {
         Long id, String direction,
         Long myReviewId, String myReviewTitle,
         Long theirReviewId, String theirReviewTitle,
-        String theirUsername, java.time.LocalDateTime createdAt
+        String theirUsername, java.time.LocalDateTime createdAt,
+        String status
     ) {}
 }

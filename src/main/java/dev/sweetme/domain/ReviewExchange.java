@@ -1,5 +1,6 @@
 package dev.sweetme.domain;
 
+import dev.sweetme.domain.enums.ExchangeStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -26,7 +27,16 @@ public class ReviewExchange {
     @Column(name = "target_review_id", nullable = false)
     private Long targetReviewId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "exchange_status", nullable = false, columnDefinition = "VARCHAR2(20) DEFAULT 'ACCEPTED'")
+    @Builder.Default
+    private ExchangeStatus status = ExchangeStatus.PENDING;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    public void accept() {
+        this.status = ExchangeStatus.ACCEPTED;
+    }
 }

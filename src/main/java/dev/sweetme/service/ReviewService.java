@@ -2,6 +2,7 @@ package dev.sweetme.service;
 
 import dev.sweetme.domain.Review;
 import dev.sweetme.domain.enums.CareerLevel;
+import dev.sweetme.domain.enums.ExchangeStatus;
 import dev.sweetme.domain.enums.ReviewJobCategory;
 import dev.sweetme.domain.enums.ReviewStatus;
 import dev.sweetme.domain.enums.ReviewType;
@@ -78,7 +79,9 @@ public class ReviewService {
     public String getPortfolioLink(Long id, String rawPassword, boolean isAdmin, String memberUsername) {
         Review review = findById(id);
         boolean isOwner = memberUsername != null && memberUsername.equals(review.getMemberUsername());
-        boolean hasExchangeAccess = memberUsername != null && exchangeRepository.hasAccessToRequesterLink(id, memberUsername);
+        boolean hasExchangeAccess = memberUsername != null &&
+                (exchangeRepository.hasAccessToRequesterLink(id, memberUsername)
+                 || exchangeRepository.hasAccessAsRequester(id, memberUsername));
         if (!isAdmin && !isOwner && !hasExchangeAccess) {
             if (review.getPasswordHash() == null || !passwordEncoder.matches(rawPassword, review.getPasswordHash())) {
                 throw new SecurityException("비밀번호가 올바르지 않습니다.");
@@ -87,9 +90,9 @@ public class ReviewService {
         return review.getPortfolioLink();
     }
 
-    /** 서로보기: myReviewId 제공 → targetReviewId 링크 반환 */
+    /** 서로보기 신청: PENDING 상태로 요청 생성 */
     @Transactional
-    public String createExchange(Long targetReviewId, Long myReviewId, String sessionUsername) {
+    public void createExchangeRequest(Long targetReviewId, Long myReviewId, String sessionUsername) {
         Review myReview = findById(myReviewId);
         if (!sessionUsername.equals(myReview.getMemberUsername())) {
             throw new SecurityException("본인의 글만 제공할 수 있습니다.");
@@ -98,14 +101,40 @@ public class ReviewService {
         if (sessionUsername.equals(targetReview.getMemberUsername())) {
             throw new IllegalArgumentException("자신의 글과는 교환할 수 없습니다.");
         }
-        // 이미 교환했으면 링크 바로 반환
-        if (!exchangeRepository.existsByRequesterReviewIdAndTargetReviewId(myReviewId, targetReviewId)) {
-            exchangeRepository.save(ReviewExchange.builder()
-                    .requesterReviewId(myReviewId)
-                    .targetReviewId(targetReviewId)
-                    .build());
+        if (exchangeRepository.existsByRequesterReviewIdAndTargetReviewId(myReviewId, targetReviewId)) {
+            throw new IllegalArgumentException("이미 서로보기 요청을 보냈습니다.");
         }
-        return targetReview.getPortfolioLink();
+        exchangeRepository.save(ReviewExchange.builder()
+                .requesterReviewId(myReviewId)
+                .targetReviewId(targetReviewId)
+                .build());
+    }
+
+    /** 서로보기 수락: target 리뷰 소유자만 가능 */
+    @Transactional
+    public void acceptExchange(Long exchangeId, String username) {
+        ReviewExchange exchange = exchangeRepository.findById(exchangeId)
+                .orElseThrow(() -> new IllegalArgumentException("서로보기 요청을 찾을 수 없습니다."));
+        Review targetReview = findById(exchange.getTargetReviewId());
+        if (!username.equals(targetReview.getMemberUsername())) {
+            throw new SecurityException("수락 권한이 없습니다.");
+        }
+        if (exchange.getStatus() != ExchangeStatus.PENDING) {
+            throw new IllegalStateException("이미 처리된 요청입니다.");
+        }
+        exchange.accept();
+    }
+
+    /** 서로보기 거절: 교환 레코드 삭제 */
+    @Transactional
+    public void rejectExchange(Long exchangeId, String username) {
+        ReviewExchange exchange = exchangeRepository.findById(exchangeId)
+                .orElseThrow(() -> new IllegalArgumentException("서로보기 요청을 찾을 수 없습니다."));
+        Review targetReview = findById(exchange.getTargetReviewId());
+        if (!username.equals(targetReview.getMemberUsername())) {
+            throw new SecurityException("거절 권한이 없습니다.");
+        }
+        exchangeRepository.delete(exchange);
     }
 
     @Transactional

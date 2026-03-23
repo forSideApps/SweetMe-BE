@@ -19,9 +19,17 @@ public interface ReviewExchangeRepository extends JpaRepository<ReviewExchange, 
     @Query("SELECT e FROM ReviewExchange e WHERE e.requesterReviewId IN :reviewIds ORDER BY e.createdAt DESC")
     List<ReviewExchange> findByRequesterReviewIdIn(@Param("reviewIds") List<Long> reviewIds);
 
-    // 내가 교환 대상이 된 경우: 상대방의 리뷰(requesterReviewId)를 보려면, 내 리뷰 중 targetReviewId인 게 있어야 함
+    // 수락된 교환: 대상 유저(target 리뷰 소유자)가 requester 링크를 볼 수 있는지
     @Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END FROM ReviewExchange e " +
            "JOIN Review r ON r.id = e.targetReviewId " +
-           "WHERE e.requesterReviewId = :requesterReviewId AND r.memberUsername = :username")
+           "WHERE e.requesterReviewId = :requesterReviewId AND r.memberUsername = :username " +
+           "AND e.status = dev.sweetme.domain.enums.ExchangeStatus.ACCEPTED")
     boolean hasAccessToRequesterLink(@Param("requesterReviewId") Long requesterReviewId, @Param("username") String username);
+
+    // 수락된 교환: 요청자(requester 리뷰 소유자)가 target 링크를 볼 수 있는지
+    @Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END FROM ReviewExchange e " +
+           "JOIN Review r ON r.id = e.requesterReviewId " +
+           "WHERE e.targetReviewId = :targetReviewId AND r.memberUsername = :username " +
+           "AND e.status = dev.sweetme.domain.enums.ExchangeStatus.ACCEPTED")
+    boolean hasAccessAsRequester(@Param("targetReviewId") Long targetReviewId, @Param("username") String username);
 }
