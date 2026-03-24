@@ -125,7 +125,7 @@ public class ReviewService {
         exchange.accept();
     }
 
-    /** 서로보기 거절: 이력 보존을 위해 REJECTED 상태로 변경 */
+    /** 서로보기 거절: Oracle CHECK 제약 우회를 위해 레코드 삭제 */
     @Transactional
     public void rejectExchange(Long exchangeId, String username) {
         ReviewExchange exchange = exchangeRepository.findById(exchangeId)
@@ -138,7 +138,7 @@ public class ReviewService {
         if (targetOwner == null || !targetOwner.equals(username)) {
             throw new SecurityException("거절 권한이 없습니다.");
         }
-        exchange.reject();
+        exchangeRepository.delete(exchange);
     }
 
     /** 서로보기 보낸 요청 취소: 요청자만 가능, PENDING 상태인 경우만 */

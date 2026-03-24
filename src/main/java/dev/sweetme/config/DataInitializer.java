@@ -73,12 +73,7 @@ public class DataInitializer implements ApplicationRunner {
         }
 
         // 방 목데이터
-        boolean roomNeedsReseed = roomRepository.count() == 0 ||
-            roomRepository.findAll().stream().anyMatch(r ->
-                r.getJobRole() != null && java.util.Set.of(
-                    JobRole.FULLSTACK, JobRole.MOBILE, JobRole.AI_ML,
-                    JobRole.DEVOPS, JobRole.SECURITY, JobRole.EMBEDDED, JobRole.DATA
-                ).contains(r.getJobRole()));
+        boolean roomNeedsReseed = roomRepository.count() == 0;
         if (roomNeedsReseed) {
             roomRepository.deleteAll();
             String pw = passwordEncoder.encode("1234");
@@ -86,35 +81,22 @@ public class DataInitializer implements ApplicationRunner {
             companyRepository.findAll().forEach(c -> companyMap.put(c.getSlug(), c));
 
             List<Room> rooms = new ArrayList<>();
-            rooms.add(room(companyMap.get("soma"),    "소마 15기 백엔드 면접 스터디",            "소프트웨어 마에스트로 15기를 목표로 하는 백엔드 집중 스터디입니다. 주 2회 모의 면접을 진행합니다.",             JobRole.BACKEND,  "박지훈",  pw, "https://open.kakao.com/mock1",  4));
-            rooms.add(room(companyMap.get("soma"),    "소마 포트폴리오 + 면접 준비",              "포트폴리오 리뷰부터 기술 면접까지 함께 준비해요. 풀스택 개발자 환영합니다.",                                   JobRole.OTHER,    "김민준",  pw, "https://open.kakao.com/mock2",  5));
-            rooms.add(room(companyMap.get("samsung"), "삼성 SW역량테스트 B형 준비",              "삼성 SW 역량 테스트 B형 합격을 목표로 알고리즘 문제 풀이 스터디를 진행합니다.",                               JobRole.BACKEND,  "이서연",  pw, "https://open.kakao.com/mock3",  6));
-            rooms.add(room(companyMap.get("samsung"), "삼성전자 DX 직군 기술 면접 스터디",       "자료구조/운영체제/네트워크 집중 대비 스터디입니다.",                                                             JobRole.OTHER,    "최예진",  pw, "https://open.kakao.com/mock4",  4));
-            rooms.add(room(companyMap.get("lg"),      "LG CNS 신입 공채 대비 스터디",            "LG CNS 신입 공채 코딩테스트 및 기술 면접을 함께 준비합니다.",                                                   JobRole.BACKEND,  "정현우",  pw, "https://open.kakao.com/mock5",  5));
-            rooms.add(room(companyMap.get("lg"),      "LG전자 SW 개발 직군 면접 스터디",         "LG전자 HE/MC사업부 SW 개발 직군 면접 준비 스터디입니다.",                                                       JobRole.OTHER,    "강수빈",  pw, "https://open.kakao.com/mock6",  4));
-            rooms.add(room(companyMap.get("hyundai"), "현대자동차 소프트웨어 공채 스터디",        "현대차그룹 소프트웨어 직군 코딩테스트 및 인성/기술 면접을 준비합니다.",                                         JobRole.BACKEND,  "윤지아",  pw, "https://open.kakao.com/mock7",  6));
-            rooms.add(room(companyMap.get("hyundai"), "기아 AI/데이터 직군 면접 스터디",          "기아 데이터/AI 직군 지원자들을 위한 면접 준비 스터디입니다.",                                                   JobRole.OTHER,    "임도현",  pw, "https://open.kakao.com/mock8",  4));
-            rooms.add(room(companyMap.get("kakao"),   "카카오 코딩테스트 완전정복 스터디",        "카카오 공채 코딩테스트 기출 분석 및 유형별 풀이 스터디입니다. 주 3회 문제 풀이.",                              JobRole.BACKEND,  "오채원",  pw, "https://open.kakao.com/mock9",  5));
-            rooms.add(room(companyMap.get("kakao"),   "카카오 프론트엔드 기술 면접 스터디",       "React, JavaScript 심화 및 브라우저 동작 원리 등 카카오 FE 면접 대비 스터디.",                                 JobRole.FRONTEND, "한승민",  pw, "https://open.kakao.com/mock10", 4));
-            rooms.add(room(companyMap.get("naver"),   "네이버 백엔드 기술 면접 스터디",           "네이버 공채 백엔드 기술 면접을 위한 CS 기초부터 실전까지 준비하는 스터디입니다.",                              JobRole.BACKEND,  "조민서",  pw, "https://open.kakao.com/mock11", 6));
-            rooms.add(room(companyMap.get("naver"),   "네이버웹툰 / 네이버클라우드 취준 스터디",  "네이버 계열사를 타겟으로 하는 클라우드 개발자 면접 준비 스터디.",                                             JobRole.OTHER,    "신지우",  pw, "https://open.kakao.com/mock12", 5));
-            rooms.add(room(companyMap.get("line"),    "LINE 글로벌 기술 면접 대비 스터디",        "LINE 공채 영어 면접 및 기술 면접을 준비합니다. 시스템 디자인 인터뷰 포함.",                                   JobRole.BACKEND,  "류하은",  pw, "https://open.kakao.com/mock13", 4));
-            rooms.add(room(companyMap.get("line"),    "LINE 모바일 플랫폼 개발자 스터디",          "LINE 모바일 개발 직군 지원자를 위한 iOS/Android 기술 면접 준비 스터디.",                                      JobRole.OTHER,    "황준혁",  pw, "https://open.kakao.com/mock14", 4));
-            rooms.add(room(companyMap.get("coupang"), "쿠팡 코딩테스트 + 시스템디자인 스터디",   "쿠팡 개발 직군 코딩테스트 및 시스템 디자인 인터뷰를 함께 준비합니다.",                                         JobRole.BACKEND,  "서나윤",  pw, "https://open.kakao.com/mock15", 5));
-            rooms.add(room(companyMap.get("coupang"), "쿠팡 DevOps/SRE 직군 면접 스터디",        "쿠팡 인프라/DevOps 직군을 목표로 하는 분들을 위한 면접 준비 스터디입니다.",                                    JobRole.OTHER,    "문성재",  pw, "https://open.kakao.com/mock16", 4));
-            rooms.add(room(companyMap.get("toss"),    "토스 챕터 면접 집중 대비 스터디",          "토스 개발자 채용 프로세스인 챕터 면접을 집중적으로 대비하는 스터디입니다.",                                     JobRole.OTHER,    "배소희",  pw, "https://open.kakao.com/mock17", 4));
-            rooms.add(room(companyMap.get("toss"),    "핀테크 보안 & 백엔드 면접 스터디",          "토스/카카오페이 등 핀테크 기업의 보안 및 백엔드 직군 면접을 준비합니다.",                                     JobRole.BACKEND,  "이준영",  pw, "https://open.kakao.com/mock18", 5));
-            rooms.add(room(companyMap.get("startup"), "스타트업 포트폴리오 & 이직 준비 스터디",   "스타트업 이직을 준비하는 개발자들의 포트폴리오 리뷰 및 면접 준비 스터디입니다.",                               JobRole.OTHER,    "김태양",  pw, "https://open.kakao.com/mock19", 6));
-            rooms.add(room(companyMap.get("startup"), "AI 스타트업 ML엔지니어 면접 스터디",        "AI/ML 스타트업 취업을 위한 머신러닝 이론 및 실전 프로젝트 면접 준비 스터디.",                                 JobRole.OTHER,    "정수현",  pw, "https://open.kakao.com/mock20", 4));
+            rooms.add(room(companyMap.get("soma"),    "소마 15기 면접 집중 스터디",               "소프트웨어 마에스트로 15기를 목표로 모인 스터디입니다. 주 2회 모의 면접, CS 기초 정리, 포트폴리오 피드백을 함께 진행합니다.",   JobRole.BACKEND,  "박지훈",  pw, "https://open.kakao.com/mock1",   5));
+            rooms.add(room(companyMap.get("samsung"), "삼성 SW역량테스트 B형 대비",               "삼성 SW 역량 테스트 B형 합격을 목표로 알고리즘 문제를 함께 풀고 코드 리뷰합니다. 주 3회 문제 풀이 후 해설 공유.",             JobRole.BACKEND,  "이서연",  pw, "https://open.kakao.com/mock2",   6));
+            rooms.add(room(companyMap.get("kakao"),   "카카오 공채 코딩테스트 준비",               "카카오 공채 기출 문제 풀이 및 유형 분석 스터디입니다. 프로그래머스 고득점 Kit 완주를 목표로 매일 1~2문제 풀고 리뷰합니다.",      JobRole.BACKEND,  "정현우",  pw, "https://open.kakao.com/mock3",   5));
+            rooms.add(room(companyMap.get("naver"),   "네이버 백엔드 기술 면접 스터디",             "네이버 공채 백엔드 직군 기술 면접 대비 스터디입니다. 자료구조, OS, 네트워크, DB, Spring 심화까지 체계적으로 준비합니다.",       JobRole.BACKEND,  "최예진",  pw, "https://open.kakao.com/mock4",   4));
+            rooms.add(room(companyMap.get("kakao"),   "카카오 프론트엔드 기술 면접 대비",           "React, JavaScript 심화 및 브라우저 동작 원리, 성능 최적화 등 카카오 FE 면접을 집중 준비합니다. 주 2회 모의 면접 진행.",      JobRole.FRONTEND, "한승민",  pw, "https://open.kakao.com/mock5",   4));
+            rooms.add(room(companyMap.get("toss"),    "토스 챕터 면접 준비 스터디",                "토스 채용 프로세스 특성에 맞춰 챕터 인터뷰를 집중 대비합니다. 실제 토스 출제 스타일 기반 모의 면접을 주 2회 진행합니다.",          JobRole.BACKEND,  "강수빈",  pw, "https://open.kakao.com/mock6",   4));
+            rooms.add(room(companyMap.get("lg"),      "LG CNS 신입 공채 코딩테스트 대비",          "LG CNS 신입 공채 코딩테스트 준비 스터디입니다. 최신 기출 분석과 함께 알고리즘 핵심 유형을 효율적으로 학습합니다.",              JobRole.BACKEND,  "윤지아",  pw, "https://open.kakao.com/mock7",   5));
+            rooms.add(room(companyMap.get("hyundai"), "현대차 소프트웨어 직군 면접 대비",           "현대차그룹 소프트웨어 개발 직군 코딩테스트 및 기술 면접을 함께 준비합니다. 임베디드/SW 모두 환영합니다.",                       JobRole.BACKEND,  "임도현",  pw, "https://open.kakao.com/mock8",   6));
+            rooms.add(room(companyMap.get("naver"),   "네이버 FE · 풀스택 취준 스터디",            "네이버 FE 및 풀스택 직군 지원자들의 포트폴리오 점검 및 기술 면접 준비 스터디입니다. 코드 리뷰와 모의 면접을 병행합니다.",         JobRole.FRONTEND, "신지우",  pw, "https://open.kakao.com/mock9",   5));
+            rooms.add(room(companyMap.get("coupang"), "쿠팡 개발 직군 코테 · 시스템 디자인",       "쿠팡 개발 직군 코딩테스트 및 시스템 디자인 인터뷰를 준비합니다. 이커머스 도메인 특화 설계 문제를 중점적으로 다룹니다.",            JobRole.BACKEND,  "오채원",  pw, "https://open.kakao.com/mock10",  5));
             roomRepository.saveAll(rooms);
             log.info("방 목데이터 초기화 완료: {}개", rooms.size());
         }
 
         // 커뮤니티 목데이터 — 조회수·댓글 포함
-        long postCount = communityPostRepository.count();
-        boolean needsReseed = postCount == 0 ||
-            communityPostRepository.findAll().stream().limit(1)
-                .anyMatch(p -> java.util.List.of("박지훈","이준영","배소희","서나윤","정수현","김태양","임도현","황준혁","정현우","조민서","윤지아","최예진").contains(p.getAuthorName()));
+        boolean needsReseed = communityPostRepository.count() == 0;
         if (needsReseed) {
             communityPostRepository.deleteAll();
 
@@ -129,7 +111,7 @@ public class DataInitializer implements ApplicationRunner {
                         {"코딩하는감자", "@면접공포증 저는 약 3개월 준비했어요! 프로그래머스 고득점 kit 전부 풀고 기출 3년치 돌렸습니다 ㅎㅎ", LocalDateTime.of(2025,3,9,14,27,33)},
                     }},
                 new Object[]{PostCategory.FREE, "네이버 면접 준비하면서 느낀 점",
-                    "네이버 기술 면접은 정말 깊게 파고드는 것 같아요 ㄷㄷ 특히 JVM 동작 원리, GC 알고리즘, 그리고 Java 동시성 처리 관련 질문이 엄청 많았어요. 단순히 \"GC가 뭔가요?\" 수준이 아니라 G1GC와 ZGC 차이라든지 STW 최소화 방법까지 물어보더라고요... OS, 네트워크 기본기도 탄탄해야 합니다!! 같이 준비해요!!!",
+                    "네이버 기술 면접은 정말 깊게 파고드는 것 같아요 ㄷㄷ 특히 JVM 동작 원리, GC 알고리즘, Java 동시성 처리 관련 질문이 엄청 많았어요. 단순히 \"GC가 뭔가요?\" 수준이 아니라 G1GC와 ZGC 차이라든지 STW 최소화 방법까지 물어보더라고요... OS, 네트워크 기본기도 탄탄해야 합니다!!",
                     "백엔드만세", LocalDateTime.of(2025,3,14,9,45,33), 487,
                     new Object[][]{
                         {"프론트엔드러", "네이버 면접 그렇게 깊게 보는군요 ㄷㄷ CS 기본기 다시 닦아야겠어요... 혹시 참고하신 책이나 자료 있으신가요?", LocalDateTime.of(2025,3,14,12,8,17)},
@@ -139,7 +121,7 @@ public class DataInitializer implements ApplicationRunner {
                         {"코테통과기원", "실제 합격하신 분 후기라니 너무 귀한 정보예요!! 감사합니다 ㅎㅎ", LocalDateTime.of(2025,3,15,22,4,9)},
                     }},
                 new Object[]{PostCategory.FREE, "토스 서류 합격 후 코테 준비 팁",
-                    "토스 서류 합격했습니다!!! 같이 코테 준비할 분들 모여요 ㅎㅎ 들은 바로는 구현 문제 위주에 시스템 설계 감각도 본다고 하더라고요. 저는 LeetCode Medium~Hard 위주로 풀고 있는데 너무 외롭네요 ㅋㅋㅋ 스터디 모집 공고 낼까 고민 중이에요. 궁금하신 거 댓글로 달아주세요 ㅎㅎ",
+                    "토스 서류 합격했습니다!!! 같이 코테 준비할 분들 모여요 ㅎㅎ 들은 바로는 구현 문제 위주에 시스템 설계 감각도 본다고 하더라고요. LeetCode Medium~Hard 위주로 풀고 있는데 혼자라 외롭네요 ㅋㅋㅋ 다들 코테 어떻게 준비하세요?",
                     "서류합격뚝딱", LocalDateTime.of(2025,3,21,20,12,55), 276,
                     new Object[][]{
                         {"백엔드지망생", "저도 서류 합격이요!! 같이 해요 ㅎㅎㅎ 저는 주로 그리디 + DP 쪽 집중하고 있어요!", LocalDateTime.of(2025,3,21,22,47,14)},
@@ -148,7 +130,7 @@ public class DataInitializer implements ApplicationRunner {
                         {"깃허브초보", "@서류합격뚝딱 네!! 현재 토스 재직 중이에요 ㅎㅎ 어려운 거 있으면 편하게 질문하세요~", LocalDateTime.of(2025,3,22,14,58,22)},
                     }},
                 new Object[]{PostCategory.FREE, "삼성 SW 역량테스트 B형 자료 정리",
-                    "B형 준비하면서 정리한 내용 공유합니다!!\n\n1. STL 없이 자료구조 직접 구현 (링크드리스트, 큐, 스택, 힙)\n2. 완전탐색 + 최적화가 핵심\n3. 시간복잡도 O(NlogN) 이내로 풀어야 함\n4. 삼성 SW Expert Academy 문제 최소 500개 이상 풀기\n\n특히 커스텀 정렬 구현이 단골로 나오니 꼭 연습하세요 ㅎㅎ 다들 화이팅!!!",
+                    "B형 준비하면서 정리한 내용 공유합니다!!\n\n1. STL 없이 자료구조 직접 구현 (링크드리스트, 큐, 스택, 힙)\n2. 완전탐색 + 최적화가 핵심\n3. 시간복잡도 O(NlogN) 이내로 풀어야 함\n4. 삼성 SW Expert Academy 문제 최소 500개 이상 풀기\n\n특히 커스텀 정렬 구현이 단골로 나오니 꼭 연습하세요!!",
                     "삼성도전중", LocalDateTime.of(2025,3,28,16,38,22), 531,
                     new Object[][]{
                         {"개발공부중", "정리 감사해요!! B형 자체 구현 파트가 진짜 어렵더라고요 ㅠㅠ 혹시 몇 회 차에 합격하셨나요?", LocalDateTime.of(2025,3,28,19,2,44)},
@@ -158,7 +140,7 @@ public class DataInitializer implements ApplicationRunner {
                         {"삼성도전중", "모두 화이팅입니다!! B형 붙으면 삼성 코테는 걱정 없어요 ㅎㅎㅎ", LocalDateTime.of(2025,3,30,9,5,17)},
                     }},
                 new Object[]{PostCategory.FREE, "소마 15기 최종 합격 후기",
-                    "소마 15기 최종 합격했습니다!!! 너무 기쁘네요 ㅎㅎㅎ\n\n면접에서는 프로젝트 설명을 정말 깊게 파고들었어요. \"왜 이 기술 스택을 선택했나요?\", \"이 부분을 다시 만든다면 어떻게 바꾸겠어요?\" 같은 질문이 많았습니다. 기술 선택의 이유와 트레이드오프를 명확하게 설명할 수 있도록 준비하세요!! 궁금하신 거 댓글로 달아주세요 ㅎㅎ",
+                    "소마 15기 최종 합격했습니다!!! 면접에서는 프로젝트를 정말 깊게 파고들었어요. \"왜 이 기술 스택을 선택했나요?\", \"이 부분을 다시 만든다면 어떻게 바꾸겠어요?\" 같은 질문이 많았습니다. 기술 선택의 이유와 트레이드오프를 명확하게 설명할 수 있도록 준비하세요!!",
                     "소마합격기원", LocalDateTime.of(2025,4,4,11,5,44), 842,
                     new Object[][]{
                         {"취준전사", "축하드려요!!! 저도 15기 도전할 건데 포폴 어떻게 구성하셨어요??", LocalDateTime.of(2025,4,4,13,41,8)},
@@ -169,7 +151,7 @@ public class DataInitializer implements ApplicationRunner {
                         {"서류합격뚝딱", "좋은 후기 감사해요!! 저도 내년에 꼭 도전해봐야겠어요!", LocalDateTime.of(2025,4,6,10,6,48)},
                     }},
                 new Object[]{PostCategory.FREE, "현대차 SW 직군 코테 난이도 어때요?",
-                    "현대차 SW 직군 코테 준비 중인데 난이도나 출제 경향이 너무 궁금해요!! 알고리즘 위주인지, 구현 위주인지, 아니면 SQL도 나오는지 아시는 분 계신가요? 취준 중인데 정보가 없어서 막막하네요 ㅠㅠ 다들 어떠셨나요??",
+                    "현대차 SW 직군 코테 준비 중인데 난이도나 출제 경향이 너무 궁금해요!! 알고리즘 위주인지, 구현 위주인지, SQL도 나오는지 아시는 분 계신가요? 취준 중인데 정보가 없어서 막막하네요 ㅠㅠ",
                     "현차뚫을거야", LocalDateTime.of(2025,4,11,22,51,9), 198,
                     new Object[][]{
                         {"면접공포증", "제가 작년에 봤는데 알고리즘 + 구현 혼합이었어요! 프로그래머스 레벨 3 수준이면 충분히 풀 수 있었어요. SQL은 없었어요 ㅎㅎ", LocalDateTime.of(2025,4,12,1,24,33)},
@@ -177,7 +159,7 @@ public class DataInitializer implements ApplicationRunner {
                         {"밤샘개발자", "저도 올 상반기에 보려고 준비 중이에요 ㅎㅎ 같이 스터디 하실 분 계세요?", LocalDateTime.of(2025,4,12,20,9,11)},
                     }},
                 new Object[]{PostCategory.FREE, "LG CNS vs LG전자 어디가 나을까요?",
-                    "LG CNS와 LG전자 SW 직군 둘 다 지원하려는데 고민이 너무 많아요 ㅠㅠ 개발 문화, 기술 스택, 워라밸 등 아시는 분들 정보 공유 부탁드려요!! 특히 신입 개발자 입장에서 성장하기 좋은 곳이 어딘지 궁금해요. 다들 어떻게 생각하세요??",
+                    "LG CNS와 LG전자 SW 직군 둘 다 지원하려는데 고민이 너무 많아요 ㅠㅠ 개발 문화, 기술 스택, 워라밸 등 아시는 분들 정보 공유 부탁드려요!! 특히 신입 개발자 입장에서 성장하기 좋은 곳이 어딘지 궁금해요.",
                     "LG가즈아", LocalDateTime.of(2025,4,18,8,17,36), 356,
                     new Object[][]{
                         {"프론트엔드러", "LG CNS는 SI/SM 업무도 있어서 처음엔 고객사 파견이 많을 수 있어요. LG전자는 제품 SW 개발이라 도메인이 명확하고 성장 경로가 뚜렷한 편이에요 ㅎㅎ", LocalDateTime.of(2025,4,18,11,4,22)},
@@ -187,7 +169,7 @@ public class DataInitializer implements ApplicationRunner {
                         {"취준하는곰", "두 곳 다 좋아 보이네요 ㅎㅎ 합격이 우선이겠지만 ㅋㅋㅋ 화이팅!!!", LocalDateTime.of(2025,4,19,14,42,5)},
                     }},
                 new Object[]{PostCategory.FREE, "쿠팡 시스템 디자인 면접 준비 방법",
-                    "쿠팡 2차 면접에서 시스템 디자인을 물어본다고 들었어요!! 어떻게 준비하셨나요?? 주로 어떤 주제가 나왔는지, 추천 자료도 같이 공유해주시면 정말 감사하겠어요 ㅎㅎ 궁금하신 거 댓글로 달아주세요!!!",
+                    "쿠팡 2차 면접에서 시스템 디자인을 물어본다고 들었어요!! 어떻게 준비하셨나요?? 주로 어떤 주제가 나왔는지, 추천 자료도 같이 공유해주시면 정말 감사하겠어요 ㅎㅎ",
                     "시스템디자이너", LocalDateTime.of(2025,4,25,19,43,1), 423,
                     new Object[][]{
                         {"백엔드지망생", "'Designing Data-Intensive Applications' 책이 진짜 필독서예요!! 분산 시스템 이론이 잘 정리돼 있어요 ㅎㅎ", LocalDateTime.of(2025,4,25,22,11,29)},
@@ -196,36 +178,47 @@ public class DataInitializer implements ApplicationRunner {
                         {"리트코더", "쿠팡은 특히 주문 처리 시스템이나 검색 인프라 같은 이커머스 도메인 시스템을 설계해보는 연습이 도움됐어요!!", LocalDateTime.of(2025,4,26,20,7,55)},
                         {"시스템디자이너", "이커머스 도메인 위주로 연습해봐야겠네요!! 다들 진짜 감사합니다 ㅎㅎ", LocalDateTime.of(2025,4,27,10,23,18)},
                     }},
+                new Object[]{PostCategory.FREE, "취업 준비하면서 멘탈 관리 어떻게 하세요?",
+                    "코테 계속 떨어지고 서류도 안 되고... 진짜 힘드네요 ㅠㅠ 다들 취준하면서 멘탈 어떻게 관리하세요? 포기하고 싶다는 생각이 들 때 어떻게 이겨내시는지 궁금해요. 그냥 공감받고 싶어서 글 써봅니다...",
+                    "멘탈챙겨야지", LocalDateTime.of(2025,5,3,21,15,44), 267,
+                    new Object[][]{
+                        {"소마합격기원", "진짜 공감돼요 ㅠㅠ 저도 서류 10군데 다 떨어지고 나서 한 달 쉬었어요. 그 시간이 오히려 방향을 다시 잡는 데 도움이 됐어요.", LocalDateTime.of(2025,5,3,22,41,8)},
+                        {"취준전사", "취준은 마라톤이에요 ㅠㅠ 조급해하지 말고 오늘 할 수 있는 것 하나씩만 하세요. 응원합니다!!", LocalDateTime.of(2025,5,4,8,17,33)},
+                        {"백엔드만세", "저도 7번 떨어지고 8번째에 붙었어요. 포기하지 마세요!! 떨어지는 게 실력이 없어서가 아니라 타이밍이 안 맞는 경우도 정말 많아요.", LocalDateTime.of(2025,5,4,12,55,19)},
+                        {"알고리즘마니아", "운동하면서 기분 전환하는 거 진짜 도움돼요 ㅎㅎ 하루 30분만 걸어도 머리가 맑아지더라고요. 화이팅!!", LocalDateTime.of(2025,5,4,19,3,47)},
+                        {"멘탈챙겨야지", "모두 따뜻한 댓글 감사해요 ㅠㅠ 덕분에 다시 힘낼 수 있을 것 같아요. 다들도 취준 화이팅!!", LocalDateTime.of(2025,5,5,10,28,6)},
+                    }},
+                new Object[]{PostCategory.FREE, "스터디 짝꿍 구해요! 같이 PS 해요",
+                    "혼자 알고리즘 공부하다 보니 너무 외롭고 동기부여가 안 돼서요 ㅠㅠ 같이 매일 1문제씩 풀고 서로 코드 리뷰해줄 짝꿍 구합니다! 레벨은 프로그래머스 레벨 2~3 수준이고, 언어는 Java 또는 Python 환영해요. 혹시 관심 있으신 분 댓글 달아주세요~",
+                    "알고리즘입문자", LocalDateTime.of(2025,5,10,16,44,27), 143,
+                    new Object[][]{
+                        {"코딩하는감자", "저 할게요!! 저도 Java로 하고 있고 레벨 2~3 준비 중이에요 ㅎㅎ 카카오톡 아이디 공유해주세요~", LocalDateTime.of(2025,5,10,18,22,53)},
+                        {"깃허브초보", "저도 참여하고 싶어요!! Python이어도 괜찮나요? 같이 리뷰하면서 서로 배울 수 있을 것 같아요 ㅎㅎ", LocalDateTime.of(2025,5,10,21,7,14)},
+                        {"알고리즘입문자", "@코딩하는감자 @깃허브초보 저도 너무 반가워요!! 3명이서 소규모로 운영해봐요 ㅎㅎ 오픈채팅 링크 만들어서 공유할게요~", LocalDateTime.of(2025,5,11,9,15,38)},
+                        {"리트코더", "저도 끼워주세요 ㅠㅠ Java 사용하고 레벨 3 준비 중이에요! 늦게 봤는데 아직 자리 있나요??", LocalDateTime.of(2025,5,11,14,49,2)},
+                    }},
                 new Object[]{PostCategory.SUGGESTION, "모집 마감 스터디 필터링 기능 요청",
-                    "현재 전체/모집중 필터만 있는데, 마감된 스터디도 따로 볼 수 있는 필터가 있으면 좋겠어요 ㅎㅎ 과거 스터디 내용이나 커리큘럼을 참고하고 싶을 때 유용할 것 같아요!! 또한 종료된 스터디의 후기도 볼 수 있으면 정말 좋겠어요. 반영해주시면 감사하겠습니다!!!",
+                    "현재 전체/모집중 필터만 있는데, 마감된 스터디도 따로 볼 수 있는 필터가 있으면 좋겠어요 ㅎㅎ 과거 스터디 내용이나 커리큘럼을 참고하고 싶을 때 유용할 것 같아요!! 또한 종료된 스터디의 후기도 볼 수 있으면 정말 좋겠어요.",
                     "기능추가마법사", LocalDateTime.of(2025,3,20,15,29,48), 89,
                     new Object[][]{
                         {"합격기원해요", "저도 이 기능 필요하다고 생각했어요!! 특히 후기 기능이랑 연계되면 정말 좋을 것 같아요 ㅎㅎ", LocalDateTime.of(2025,3,20,18,14,22)},
                         {"취준전사", "+1 동의합니다!! 어떤 스터디가 실제로 잘 운영됐는지 알 수 있으면 선택에 진짜 도움이 될 것 같아요 ㅎㅎ", LocalDateTime.of(2025,3,21,9,37,45)},
                     }},
                 new Object[]{PostCategory.SUGGESTION, "스터디 후기 작성 기능 추가 요청",
-                    "스터디 종료 후 참여자들이 후기를 남길 수 있는 기능이 있으면 정말 좋겠어요 ㅎㅎ 어떤 스터디가 잘 운영됐는지, 스터디장이 어떤지 등을 다른 사람들도 참고할 수 있게요!! 별점 같은 평가 기능도 있으면 더 좋을 것 같아요. 부탁드립니다~~~",
+                    "스터디 종료 후 참여자들이 후기를 남길 수 있는 기능이 있으면 정말 좋겠어요 ㅎㅎ 어떤 스터디가 잘 운영됐는지, 스터디장이 어떤지 등을 다른 사람들도 참고할 수 있게요!! 별점 같은 평가 기능도 있으면 더 좋을 것 같아요.",
                     "후기남기고싶어", LocalDateTime.of(2025,4,2,10,55,17), 134,
                     new Object[][]{
                         {"알고리즘마니아", "완전 공감이에요!! 스터디 선택할 때 후기가 있으면 정말 도움될 것 같아요 ㅎㅎ", LocalDateTime.of(2025,4,2,13,22,41)},
                         {"소마합격기원", "별점 + 한줄 후기 정도만 있어도 충분할 것 같아요 ㅎㅎ 구현해주시면 진짜 자주 쓸게요!!", LocalDateTime.of(2025,4,2,19,48,3)},
                         {"후기남기고싶어", "많은 분들이 원하시는 기능 같으니 운영팀에서 빨리 반영해주시면 좋겠어요 ㅎㅎ!!", LocalDateTime.of(2025,4,3,8,34,57)},
                     }},
-                new Object[]{PostCategory.SUGGESTION, "알림 기능이 있었으면 해요",
-                    "신청한 스터디의 승인/거절 결과를 이메일이나 카카오 알림으로 받을 수 있으면 좋겠어요 ㅠㅠ 매번 확인하러 들어오기가 너무 번거롭고, 빠른 결과 확인이 필요할 때 놓치는 경우가 있어요 ㅠ 꼭 추가해주세요!!!",
+                new Object[]{PostCategory.SUGGESTION, "서로보기 요청 시 알림 기능 요청",
+                    "포폴/이력서 서로보기 요청이 왔을 때 알림을 받을 수 있으면 좋겠어요 ㅠㅠ 매번 마이페이지 들어가서 확인하기 번거롭고, 요청이 와도 모르고 지나치는 경우가 있어요. 이메일 알림이나 푸시 알림 기능 추가 부탁드려요!",
                     "알림주세요제발", LocalDateTime.of(2025,5,1,13,21,59), 201,
                     new Object[][]{
-                        {"취준하는곰", "이거 진짜 필요해요!! 승인됐는지 거절됐는지 몰라서 스터디 기회를 놓친 적이 있어요 ㅠㅠ", LocalDateTime.of(2025,5,1,16,8,34)},
+                        {"취준하는곰", "이거 진짜 필요해요!! 요청이 왔는지 몰라서 좋은 기회를 놓친 적이 있어요 ㅠㅠ 꼭 추가해주세요!", LocalDateTime.of(2025,5,1,16,8,34)},
                         {"현차뚫을거야", "이메일 알림만 있어도 충분할 것 같아요 ㅎㅎ 구현 비용 대비 효용이 진짜 클 거예요!!", LocalDateTime.of(2025,5,2,9,45,12)},
-                        {"백엔드만세", "+1 동의합니다!! 카카오 알림까지 아니더라도 이메일 정도는 빠르게 구현 가능하지 않을까요 ㅎㅎ", LocalDateTime.of(2025,5,2,18,22,47)},
-                    }},
-                new Object[]{PostCategory.SUGGESTION, "스터디 찜하기 기능 제안",
-                    "관심 있는 스터디를 찜해두고 나중에 모아볼 수 있는 기능이 있으면 너무 좋겠어요 ㅎㅎ 지금은 브라우저 즐겨찾기로 관리하고 있는데 좀 번거롭네요 ㅠ 로그인 없이 로컬스토리지 기반으로 구현해도 괜찮을 것 같아요!! 부탁드립니다~~~",
-                    "찜기능원해요", LocalDateTime.of(2025,5,14,21,8,43), 167,
-                    new Object[][]{
-                        {"삼성도전중", "로컬스토리지 아이디어 진짜 좋은데요!! 로그인 없이도 쓸 수 있는 가벼운 기능으로 빠르게 추가될 수 있을 것 같아요 ㅎㅎ", LocalDateTime.of(2025,5,14,23,51,19)},
-                        {"LG가즈아", "저도 원하던 기능이에요 ㅎㅎ 특히 여러 회사 스터디를 동시에 비교할 때 진짜 불편했거든요!!", LocalDateTime.of(2025,5,15,10,17,38)},
-                        {"기능추가마법사", "찜하기 + 신청현황 페이지 합쳐서 '마이페이지' 형태로 만들어줘도 좋을 것 같아요!! 기대됩니다 ㅎㅎㅎ", LocalDateTime.of(2025,5,15,21,43,5)},
+                        {"백엔드만세", "저도 동의해요!! 이메일 알림 정도면 충분하고 빠르게 구현될 수 있을 것 같아요 ㅎㅎ", LocalDateTime.of(2025,5,2,18,22,47)},
                     }}
             );
 
