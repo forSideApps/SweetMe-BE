@@ -96,8 +96,10 @@ public class DataInitializer implements ApplicationRunner {
             log.info("방 목데이터 초기화 완료: {}개", rooms.size());
         }
 
-        // 커뮤니티 목데이터 — 조회수·댓글 포함 (항상 초기화)
-        {
+        // 커뮤니티 목데이터 — 조회수·댓글 포함
+        boolean needsReseed = communityPostRepository.findAll().stream()
+            .noneMatch(p -> "취업 준비하면서 멘탈 관리 어떻게 하세요?".equals(p.getTitle()));
+        if (needsReseed) {
             communityPostRepository.deleteAll();
 
             List<Object[]> postData = List.of(
