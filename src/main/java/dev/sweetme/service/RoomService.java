@@ -96,7 +96,8 @@ public class RoomService {
     @Transactional
     public Room updateRoom(Long roomId, RoomUpdateRequest request) {
         Room room = findById(roomId);
-        room.update(request.getTitle(), request.getDescription(), request.getMaxMembers(),
+        room.update(request.getTitle(), request.getDescription(),
+                request.getMaxMembers() != null ? request.getMaxMembers() : room.getMaxMembers(),
                 request.getKakaoLink(), request.getRequirements(), request.getJobRole());
         return room;
     }
