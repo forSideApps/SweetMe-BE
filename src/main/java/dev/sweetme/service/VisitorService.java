@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -16,11 +17,8 @@ public class VisitorService {
     private final VisitorLogRepository visitorLogRepository;
 
     @Transactional
-    public void record(String ip) {
-        LocalDate today = LocalDate.now();
-        if (!visitorLogRepository.existsByIpAndVisitDate(ip, today)) {
-            visitorLogRepository.save(new VisitorLog(ip, today));
-        }
+    public void record() {
+        visitorLogRepository.save(new VisitorLog(UUID.randomUUID().toString(), LocalDate.now()));
     }
 
     @Transactional(readOnly = true)
