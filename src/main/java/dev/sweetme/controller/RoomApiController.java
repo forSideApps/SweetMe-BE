@@ -77,7 +77,7 @@ public class RoomApiController {
 
     @GetMapping("/{id}")
     public RoomDetailDto getRoom(@PathVariable Long id) {
-        return RoomDetailDto.from(roomService.findById(id), logoBaseUrl(), false);
+        return RoomDetailDto.from(roomService.findById(id), logoBaseUrl(), true);
     }
 
     @PostMapping
