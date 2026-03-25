@@ -100,8 +100,12 @@ public class CommunityApiController {
             @PathVariable Long commentId,
             @RequestBody Map<String, String> body,
             HttpServletRequest httpRequest) {
-        communityService.updateComment(commentId, body.get("content"), getSessionUsername(httpRequest), isAdmin(httpRequest));
-        return ResponseEntity.ok().build();
+        try {
+            communityService.updateComment(commentId, body.get("content"), getSessionUsername(httpRequest), isAdmin(httpRequest));
+            return ResponseEntity.ok().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
     }
 
     @DeleteMapping("/{id}/comments/{commentId}")

@@ -23,7 +23,7 @@ public class ReviewComment {
     @JoinColumn(name = "review_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Review review;
 
-    @Column(nullable = false, length = 1000)
+    @Column(nullable = false, length = 4000)
     private String content;
 
     @Column(name = "author_name", nullable = false, length = 50)
