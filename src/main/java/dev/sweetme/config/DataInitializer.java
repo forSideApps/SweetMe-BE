@@ -5,6 +5,7 @@ import dev.sweetme.domain.Member;
 import dev.sweetme.domain.enums.MemberRole;
 import dev.sweetme.repository.CompanyRepository;
 import dev.sweetme.repository.MemberRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -23,10 +24,20 @@ public class DataInitializer implements ApplicationRunner {
     private final CompanyRepository companyRepository;
     private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final EntityManager em;
 
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
+        // 댓글 content 컬럼 확장 (1000 → 4000)
+        for (String table : List.of("review_comment", "community_comment")) {
+            try {
+                em.createNativeQuery("ALTER TABLE " + table + " MODIFY content CLOB").executeUpdate();
+                log.info("{}.content 컬럼 CLOB으로 확장", table);
+            } catch (Exception e) {
+                log.debug("{}.content ALTER 건너뜀: {}", table, e.getMessage());
+            }
+        }
 
         // admin 계정 초기화
         if (!memberRepository.existsByUsername("admin")) {
