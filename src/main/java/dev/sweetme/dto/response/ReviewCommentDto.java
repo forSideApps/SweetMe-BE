@@ -20,7 +20,7 @@ public class ReviewCommentDto {
         this.memberUsername = c.getMemberUsername();
         this.content = c.getContent();
         this.createdAt = c.getCreatedAt();
-        this.isAdmin = c.getIsAdmin() != null && c.getIsAdmin();
+        this.isAdmin = (c.getIsAdmin() != null && c.getIsAdmin()) || "운영자".equals(c.getAuthorName());
     }
 
     public static ReviewCommentDto from(ReviewComment c) {

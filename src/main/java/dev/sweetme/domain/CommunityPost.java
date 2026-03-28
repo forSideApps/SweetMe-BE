@@ -56,4 +56,9 @@ public class CommunityPost {
     public void incrementViewCount() {
         this.viewCount++;
     }
+
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 }

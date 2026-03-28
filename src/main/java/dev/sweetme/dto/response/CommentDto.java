@@ -21,9 +21,10 @@ public class CommentDto {
     private LocalDateTime createdAt;
 
     public static CommentDto from(CommunityComment comment) {
+        String authorName = "admin".equals(comment.getMemberUsername()) ? "운영자" : comment.getAuthorName();
         return new CommentDto(
                 comment.getId(),
-                comment.getAuthorName(),
+                authorName,
                 comment.getMemberUsername(),
                 comment.getContent(),
                 comment.getCreatedAt()

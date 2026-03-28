@@ -63,6 +63,11 @@ public class CommunityService {
     }
 
     @Transactional
+    public void updatePost(Long id, String title, String content) {
+        findById(id).update(title, content);
+    }
+
+    @Transactional
     public void deletePost(Long id) {
         postRepository.delete(findById(id));
     }

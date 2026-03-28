@@ -57,7 +57,7 @@ public class CommunityApiController extends BaseApiController {
             }
         }
         String memberUsername = getSessionUsername(httpRequest);
-        if (memberUsername != null) request.setAuthorName(memberUsername);
+        if (memberUsername != null) request.setAuthorName(isAdmin(httpRequest) ? "운영자" : memberUsername);
         var post = communityService.createPost(request, memberUsername);
         return ResponseEntity.ok(Map.of("id", post.getId()));
     }
@@ -69,6 +69,18 @@ public class CommunityApiController extends BaseApiController {
         }
         communityService.deleteAll();
         return ResponseEntity.ok(Map.of("message", "전체 삭제 완료"));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updatePost(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body,
+            HttpServletRequest httpRequest) {
+        if (!isAdmin(httpRequest)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "어드민 권한이 필요합니다."));
+        }
+        communityService.updatePost(id, body.get("title"), body.get("content"));
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
@@ -88,7 +100,7 @@ public class CommunityApiController extends BaseApiController {
             HttpServletRequest httpRequest) {
         String memberUsername = getSessionUsername(httpRequest);
         if (memberUsername != null) {
-            request.setAuthorName(memberUsername);
+            request.setAuthorName(isAdmin(httpRequest) ? "운영자" : memberUsername);
         }
         communityService.addComment(id, request, memberUsername);
         return ResponseEntity.ok().build();

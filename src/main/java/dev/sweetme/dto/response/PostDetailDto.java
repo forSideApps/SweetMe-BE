@@ -32,12 +32,13 @@ public class PostDetailDto {
         List<CommentDto> commentDtos = post.getComments().stream()
                 .map(CommentDto::from)
                 .collect(Collectors.toList());
+        String authorName = "admin".equals(post.getMemberUsername()) ? "운영자" : post.getAuthorName();
         return new PostDetailDto(
                 post.getId(),
                 post.getCategory().name(),
                 post.getCategory().getDisplayName(),
                 post.getTitle(),
-                post.getAuthorName(),
+                authorName,
                 post.getMemberUsername(),
                 post.getViewCount(),
                 commentDtos.size(),
