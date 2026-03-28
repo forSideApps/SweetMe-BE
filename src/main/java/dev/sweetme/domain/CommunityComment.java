@@ -21,8 +21,7 @@ public class CommunityComment {
     @JoinColumn(name = "post_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private CommunityPost post;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "text")
     private String content;
 
     @Column(name = "author_name", nullable = false, length = 50)
