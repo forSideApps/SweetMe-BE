@@ -24,7 +24,7 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     @Query("SELECT r FROM Room r WHERE r.company = :company " +
            "AND (:status IS NULL OR r.status = :status) " +
            "AND (:jobRole IS NULL OR r.jobRole = :jobRole) " +
-           "AND (:keyword IS NULL OR LOWER(r.title) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:keyword = '' OR LOWER(r.title) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
            "ORDER BY r.createdAt DESC")
     Page<Room> findByThemeFiltered(
             @Param("company") Company company,
@@ -41,7 +41,7 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     @Query("SELECT r FROM Room r WHERE " +
            "(:status IS NULL OR r.status = :status) " +
            "AND (:jobRole IS NULL OR r.jobRole = :jobRole) " +
-           "AND (:keyword IS NULL OR LOWER(r.title) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:keyword = '' OR LOWER(r.title) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
            "ORDER BY r.createdAt DESC")
     Page<Room> findAllFiltered(
             @Param("status") RoomStatus status,

@@ -27,6 +27,4 @@ wallet/
 ### Env
 .env
 .env.*
-!.env.example
-application-local.yml
-application-prod.yml
+oci_docker_config

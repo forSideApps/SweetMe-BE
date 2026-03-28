@@ -14,8 +14,7 @@ import java.time.LocalDateTime;
 public class CommunityComment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_community_comment")
-    @SequenceGenerator(name = "seq_community_comment", sequenceName = "SEQ_COMMUNITY_COMMENT", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

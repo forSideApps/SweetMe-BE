@@ -122,6 +122,6 @@ public class RoomService {
     }
 
     private String parseKeyword(String value) {
-        return (value != null && !value.isBlank()) ? value : null;
+        return (value != null && !value.isBlank()) ? value : "";
     }
 }

@@ -15,8 +15,7 @@ import java.time.LocalDateTime;
 public class ReviewComment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_review_comment")
-    @SequenceGenerator(name = "seq_review_comment", sequenceName = "SEQ_REVIEW_COMMENT", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

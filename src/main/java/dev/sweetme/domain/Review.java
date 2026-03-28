@@ -22,8 +22,7 @@ import java.util.List;
 public class Review {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_review")
-    @SequenceGenerator(name = "seq_review", sequenceName = "SEQ_REVIEW", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
@@ -31,16 +30,16 @@ public class Review {
     private ReviewType type;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "VARCHAR2(20) DEFAULT 'PENDING'")
+    @Column(nullable = false)
     @Builder.Default
     private ReviewStatus status = ReviewStatus.PENDING;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "job_category", nullable = false, columnDefinition = "VARCHAR2(20) DEFAULT 'BACKEND'")
+    @Column(name = "job_category", nullable = false)
     private ReviewJobCategory jobCategory;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "career_level", nullable = false, columnDefinition = "VARCHAR2(20) DEFAULT 'JUNIOR'")
+    @Column(name = "career_level", nullable = false)
     private CareerLevel careerLevel;
 
     @Column(nullable = false, length = 200)

@@ -40,30 +40,26 @@ jobs:
       - name: Deploy backend to EC2
         uses: appleboy/ssh-action@v1
         env:
-          DB_USERNAME:   ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD:   ${{ secrets.DB_PASSWORD }}
-          WALLET_BASE64: ${{ secrets.WALLET_BASE64 }}
-          OCI_BASE64:    ${{ secrets.OCI_BASE64 }}
-          GHCR_TOKEN:    ${{ secrets.GITHUB_TOKEN }}
-          GHCR_USER:     ${{ github.actor }}
+          DB_USERNAME:    ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD:    ${{ secrets.DB_PASSWORD }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          OCI_BASE64:     ${{ secrets.OCI_BASE64 }}
+          GHCR_TOKEN:     ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER:      ${{ github.actor }}
         with:
           host:     ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key:      ${{ secrets.EC2_KEY }}
-          envs: DB_USERNAME,DB_PASSWORD,WALLET_BASE64,OCI_BASE64,GHCR_TOKEN,GHCR_USER
+          envs: DB_USERNAME,DB_PASSWORD,ADMIN_PASSWORD,OCI_BASE64,GHCR_TOKEN,GHCR_USER
           script: |
             set -e
             APP_DIR=/home/ubuntu/sweetme
-
-            mkdir -p $APP_DIR/backend/wallet
-            echo "$WALLET_BASE64" | base64 -d | tar -xz -C $APP_DIR/backend/
-            printf 'WALLET_LOCATION = (SOURCE = (METHOD = file) (METHOD_DATA = (DIRECTORY="/wallet")))\nSSL_SERVER_DN_MATCH=yes\n' > $APP_DIR/backend/wallet/sqlnet.ora
 
             mkdir -p $APP_DIR/oci
             echo "$OCI_BASE64" | base64 -d | tar -xz -C $APP_DIR/oci/
             sed -i 's|key_file=.*|key_file=/root/.oci/oci_api_key.pem|' $APP_DIR/oci/config
 
-            printf 'DB_USERNAME=%s\nDB_PASSWORD=%s\n' "$DB_USERNAME" "$DB_PASSWORD" > $APP_DIR/.env
+            printf 'DB_USERNAME=%s\nDB_PASSWORD=%s\nADMIN_PASSWORD=%s\n' "$DB_USERNAME" "$DB_PASSWORD" "$ADMIN_PASSWORD" > $APP_DIR/.env
 
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             docker pull ${{ env.BACKEND_IMAGE }}:latest

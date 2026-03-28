@@ -22,7 +22,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
            "AND (:status IS NULL OR r.status = :status) " +
            "AND (:jobCategory IS NULL OR r.jobCategory = :jobCategory) " +
            "AND (:careerLevel IS NULL OR r.careerLevel = :careerLevel) " +
-           "AND (:keyword IS NULL OR LOWER(r.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "AND (:keyword = '' OR LOWER(r.title) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
            "     OR LOWER(r.authorName) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
            "ORDER BY r.createdAt DESC")
     Page<Review> search(

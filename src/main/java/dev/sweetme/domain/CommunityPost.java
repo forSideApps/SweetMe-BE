@@ -17,8 +17,7 @@ import java.util.List;
 public class CommunityPost {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_community_post")
-    @SequenceGenerator(name = "seq_community_post", sequenceName = "SEQ_COMMUNITY_POST", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)

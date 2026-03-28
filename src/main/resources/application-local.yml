@@ -1,0 +1,23 @@
+spring:
+  jpa:
+    show-sql: true
+
+server:
+  error:
+    include-message: always
+    include-stacktrace: on_param
+    include-exception: true
+    include-binding-errors: always
+
+logging:
+  level:
+    root: INFO
+    dev.sweetme: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.springframework.web: INFO
+
+app:
+  cors:
+    allowed-origins: http://localhost:5173,http://localhost:21001
+  oci:
+    config-file: ~/.oci/config

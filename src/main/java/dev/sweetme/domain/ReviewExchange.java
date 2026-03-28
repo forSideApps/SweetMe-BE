@@ -17,8 +17,7 @@ import java.time.LocalDateTime;
 public class ReviewExchange {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_review_exchange")
-    @SequenceGenerator(name = "seq_review_exchange", sequenceName = "SEQ_REVIEW_EXCHANGE", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "requester_review_id", nullable = false)
@@ -28,7 +27,7 @@ public class ReviewExchange {
     private Long targetReviewId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "exchange_status", nullable = false, columnDefinition = "VARCHAR2(20) DEFAULT 'ACCEPTED'")
+    @Column(name = "exchange_status", nullable = false)
     @Builder.Default
     private ExchangeStatus status = ExchangeStatus.PENDING;
 

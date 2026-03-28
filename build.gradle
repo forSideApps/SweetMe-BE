@@ -27,8 +27,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.security:spring-security-crypto:6.3.3'
-    implementation 'com.oracle.database.jdbc:ojdbc11:23.4.0.24.05'
-    implementation 'com.oracle.database.jdbc:ucp:23.4.0.24.05'
+    implementation 'org.postgresql:postgresql'
 
     // OCI Object Storage SDK
     implementation platform('com.oracle.oci.sdk:oci-java-sdk-bom:3.46.0')

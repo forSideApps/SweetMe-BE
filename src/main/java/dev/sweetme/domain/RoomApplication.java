@@ -18,8 +18,7 @@ import java.time.LocalDateTime;
 public class RoomApplication {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_room_application")
-    @SequenceGenerator(name = "seq_room_application", sequenceName = "SEQ_ROOM_APPLICATION", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

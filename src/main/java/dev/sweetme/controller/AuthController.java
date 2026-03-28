@@ -216,9 +216,9 @@ public class AuthController {
     }
 
     public record RegisterRequest(
-        @NotBlank @Size(min = 3, max = 50) String username,
-        @NotBlank @Size(min = 4, max = 100) String password,
-        @NotBlank String email,
+        @NotBlank(message = "아이디를 입력해주세요.") @Size(min = 3, max = 50, message = "아이디는 3~50자 사이여야 합니다.") String username,
+        @NotBlank(message = "비밀번호를 입력해주세요.") @Size(min = 4, max = 100, message = "비밀번호는 4~100자 사이여야 합니다.") String password,
+        String email,
         String jobRole,
         String careerLevel,
         String algoGrade

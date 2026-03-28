@@ -1,0 +1,25 @@
+spring:
+  jpa:
+    show-sql: false
+
+server:
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-exception: false
+    include-binding-errors: never
+
+logging:
+  level:
+    root: WARN
+    dev.sweetme: INFO
+    org.hibernate.SQL: WARN
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    com.zaxxer.hikari: WARN
+
+app:
+  cors:
+    allowed-origins: ${CORS_ORIGINS:https://sweetme.kro.kr}
+  oci:
+    config-file: /root/.oci/config

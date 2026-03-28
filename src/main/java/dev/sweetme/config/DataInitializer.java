@@ -13,11 +13,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.List;
 
 @Slf4j
@@ -28,20 +23,10 @@ public class DataInitializer implements ApplicationRunner {
     private final CompanyRepository companyRepository;
     private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final DataSource dataSource;
 
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        // 댓글 content 컬럼 VARCHAR2 → CLOB 마이그레이션 (Oracle 임시 컬럼 방식)
-        try (Connection conn = dataSource.getConnection()) {
-            for (String table : List.of("review_comment", "community_comment")) {
-                migrateContentToClob(conn, table);
-            }
-        } catch (Exception e) {
-            log.warn("content 컬럼 마이그레이션 실패: {}", e.getMessage());
-        }
-
         // admin 계정 초기화
         if (!memberRepository.existsByUsername("admin")) {
             memberRepository.save(Member.builder()
@@ -69,39 +54,6 @@ public class DataInitializer implements ApplicationRunner {
             );
             companyRepository.saveAll(companies);
             log.info("회사 데이터 초기화 완료: {}개", companies.size());
-        }
-    }
-
-    /**
-     * Oracle: VARCHAR2 → CLOB 직접 변환 불가 → 임시 컬럼 경유 방식
-     * 이미 CLOB이면 건너뜀 (멱등)
-     */
-    private void migrateContentToClob(Connection conn, String table) throws Exception {
-        String schema = conn.getSchema();
-        try (PreparedStatement ps = conn.prepareStatement(
-                "SELECT data_type FROM all_tab_columns WHERE owner = ? AND table_name = UPPER(?) AND column_name = 'CONTENT'")) {
-            ps.setString(1, schema);
-            ps.setString(2, table);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next() && "CLOB".equals(rs.getString(1))) {
-                    log.debug("{}.content 이미 CLOB — 건너뜀", table);
-                    return;
-                }
-            }
-        }
-
-        // VARCHAR2 → CLOB: ADD tmp → UPDATE → DROP original → RENAME tmp
-        try (Statement stmt = conn.createStatement()) {
-            stmt.execute("ALTER TABLE " + table + " ADD content_clob_tmp CLOB");
-            stmt.execute("UPDATE " + table + " SET content_clob_tmp = content");
-            stmt.execute("ALTER TABLE " + table + " DROP COLUMN content");
-            stmt.execute("ALTER TABLE " + table + " RENAME COLUMN content_clob_tmp TO content");
-            log.info("{}.content VARCHAR2 → CLOB 마이그레이션 완료", table);
-        } catch (Exception e) {
-            try (Statement stmt = conn.createStatement()) {
-                stmt.execute("ALTER TABLE " + table + " DROP COLUMN content_clob_tmp");
-            } catch (Exception ignored) {}
-            throw e;
         }
     }
 }
