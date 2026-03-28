@@ -26,12 +26,13 @@ public class CommunityApiController extends BaseApiController {
     public Page<PostSummaryDto> getPosts(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "0") int page) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) Integer size) {
         PostCategory postCategory = null;
         if (category != null && !category.isBlank()) {
             postCategory = PostCategory.valueOf(category);
         }
-        return communityService.findPosts(postCategory, keyword, page)
+        return communityService.findPosts(postCategory, keyword, page, size)
                 .map(PostSummaryDto::from);
     }
 

@@ -17,6 +17,7 @@ public class PostSummaryDto {
     private String category;
     private String categoryDisplay;
     private String title;
+    private String content;
     private String authorName;
     private Integer viewCount;
     private int commentCount;
@@ -29,6 +30,7 @@ public class PostSummaryDto {
                 post.getCategory().name(),
                 post.getCategory().getDisplayName(),
                 post.getTitle(),
+                post.getContent(),
                 post.getAuthorName(),
                 post.getViewCount(),
                 post.getCommentCount(),

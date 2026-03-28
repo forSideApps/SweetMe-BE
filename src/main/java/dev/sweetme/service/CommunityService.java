@@ -25,8 +25,9 @@ public class CommunityService {
     @Value("${app.page.community-size:15}")
     private int pageSize;
 
-    public Page<CommunityPost> findPosts(PostCategory category, String keyword, int page) {
-        PageRequest pageable = PageRequest.of(page, pageSize);
+    public Page<CommunityPost> findPosts(PostCategory category, String keyword, int page, Integer size) {
+        int effectiveSize = (size != null && size > 0) ? Math.min(size, 500) : pageSize;
+        PageRequest pageable = PageRequest.of(page, effectiveSize);
         boolean hasKeyword = keyword != null && !keyword.isBlank();
         if (category == null && !hasKeyword) return postRepository.findAllByOrderByCreatedAtDesc(pageable);
         if (category == null) return postRepository.findByTitleContainingIgnoreCaseOrderByCreatedAtDesc(keyword, pageable);
