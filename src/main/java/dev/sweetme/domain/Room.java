@@ -1,12 +1,10 @@
 package dev.sweetme.domain;
 
-import dev.sweetme.domain.enums.ApplicationStatus;
 import dev.sweetme.domain.enums.JobRole;
 import dev.sweetme.domain.enums.RoomStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Formula;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -34,13 +32,6 @@ public class Room {
     @Column(length = 2000)
     private String description;
 
-    @Column(name = "max_members", nullable = false)
-    private Integer maxMembers;
-
-    @Column(name = "current_members")
-    @Builder.Default
-    private Integer currentMembers = 0;
-
     @Column(name = "kakao_link", length = 500)
     private String kakaoLink;
 
@@ -57,9 +48,6 @@ public class Room {
     @Builder.Default
     private RoomStatus status = RoomStatus.OPEN;
 
-    @Column(name = "requirements", length = 500)
-    private String requirements;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "job_role", length = 20)
     private JobRole jobRole;
@@ -67,12 +55,6 @@ public class Room {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-
-    @Formula("(SELECT COUNT(*) FROM room_application a WHERE a.room_id = id AND a.status = 'PENDING')")
-    private long pendingCount;
-
-    @Formula("(SELECT COUNT(*) FROM room_application a WHERE a.room_id = id AND a.status = 'APPROVED')")
-    private long approvedCount;
 
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
@@ -82,25 +64,14 @@ public class Room {
         this.status = RoomStatus.CLOSED;
     }
 
-    public void update(String title, String description, Integer maxMembers,
-                       String kakaoLink, String requirements, JobRole jobRole) {
+    public void update(String title, String description, String kakaoLink, JobRole jobRole) {
         this.title = title;
         this.description = description;
-        this.maxMembers = maxMembers;
         this.kakaoLink = kakaoLink;
-        this.requirements = requirements;
         this.jobRole = jobRole;
     }
 
     public void updateStatus(RoomStatus status) {
         this.status = status;
-    }
-
-    public long getPendingCount() {
-        return pendingCount;
-    }
-
-    public long getApprovedCount() {
-        return approvedCount;
     }
 }

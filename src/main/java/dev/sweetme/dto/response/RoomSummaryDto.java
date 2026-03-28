@@ -17,10 +17,7 @@ public class RoomSummaryDto {
     private String title;
     private String status;
     private String statusDisplay;
-    private Integer maxMembers;
     private String creatorNickname;
-    private long pendingCount;
-    private long approvedCount;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
     private String themeName;
@@ -36,10 +33,7 @@ public class RoomSummaryDto {
                 room.getTitle(),
                 room.getStatus().name(),
                 room.getStatus().getDisplayName(),
-                room.getMaxMembers(),
                 room.getCreatorNickname(),
-                room.getPendingCount(),
-                room.getApprovedCount(),
                 room.getCreatedAt(),
                 room.getCompany().getName(),
                 room.getCompany().getId(),

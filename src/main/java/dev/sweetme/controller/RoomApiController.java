@@ -6,7 +6,6 @@ import dev.sweetme.dto.RoomUpdateRequest;
 import dev.sweetme.dto.response.ApplicationDto;
 import dev.sweetme.dto.response.ManageDto;
 import dev.sweetme.dto.response.RoomDetailDto;
-import dev.sweetme.domain.enums.ApplicationStatus;
 import dev.sweetme.dto.response.RoomSummaryDto;
 import dev.sweetme.service.OciStorageService;
 import dev.sweetme.service.RoomApplicationService;
@@ -70,7 +69,7 @@ public class RoomApiController extends BaseApiController {
             HttpServletRequest httpRequest) {
         String memberUsername = getSessionUsername(httpRequest);
         if (memberUsername != null) {
-            request.setCreatorNickname(memberUsername);
+            request.setCreatorNickname(isAdmin(httpRequest) ? "운영자" : memberUsername);
         }
         var room = roomService.create(themeId, request, memberUsername);
         return Map.of("id", room.getId());
@@ -109,13 +108,9 @@ public class RoomApiController extends BaseApiController {
         List<ApplicationDto> appDtos = applications.stream()
                 .map(ApplicationDto::from)
                 .toList();
-        long pendingCount = appDtos.stream().filter(a -> ApplicationStatus.PENDING.name().equals(a.getStatus())).count();
-        long approvedCount = appDtos.stream().filter(a -> ApplicationStatus.APPROVED.name().equals(a.getStatus())).count();
         ManageDto dto = new ManageDto(
                 RoomDetailDto.from(room, ociStorageService.getLogoBaseUrl(), true),
-                appDtos,
-                pendingCount,
-                approvedCount
+                appDtos
         );
         return ResponseEntity.ok(dto);
     }

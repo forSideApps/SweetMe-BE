@@ -1,7 +1,8 @@
 package dev.sweetme.dto;
 
 import dev.sweetme.domain.enums.JobRole;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,16 +17,8 @@ public class RoomUpdateRequest {
     @Size(max = 2000)
     private String description;
 
-    @NotNull(message = "최대 인원을 입력해주세요.")
-    @Min(value = 2, message = "최소 2명 이상이어야 합니다.")
-    @Max(value = 20, message = "최대 20명까지 설정 가능합니다.")
-    private Integer maxMembers;
-
     @Size(max = 500)
     private String kakaoLink;
-
-    @Size(max = 500)
-    private String requirements;
 
     private JobRole jobRole;
 }
