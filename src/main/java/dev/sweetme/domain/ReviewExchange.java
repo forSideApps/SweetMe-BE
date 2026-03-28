@@ -42,4 +42,8 @@ public class ReviewExchange {
     public void reject() {
         this.status = ExchangeStatus.REJECTED;
     }
+
+    public void cancel() {
+        this.status = ExchangeStatus.CANCELLED;
+    }
 }

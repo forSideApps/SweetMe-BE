@@ -70,4 +70,11 @@ public class OciStorageService {
                 region, namespace, bucket, objectName
         );
     }
+
+    public String getLogoBaseUrl() {
+        return String.format(
+                "https://objectstorage.%s.oraclecloud.com/n/%s/b/%s/o/SweetMe/",
+                region, namespace, bucket
+        );
+    }
 }

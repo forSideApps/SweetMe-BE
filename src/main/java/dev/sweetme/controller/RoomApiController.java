@@ -13,7 +13,6 @@ import dev.sweetme.service.RoomApplicationService;
 import dev.sweetme.service.RoomService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,22 +30,6 @@ public class RoomApiController extends BaseApiController {
     private final RoomApplicationService roomApplicationService;
     private final OciStorageService ociStorageService;
 
-    @Value("${app.oci.namespace}")
-    private String namespace;
-
-    @Value("${app.oci.bucket}")
-    private String bucket;
-
-    @Value("${app.oci.region}")
-    private String region;
-
-    private String logoBaseUrl() {
-        return String.format(
-                "https://objectstorage.%s.oraclecloud.com/n/%s/b/%s/o/SweetMe/",
-                region, namespace, bucket
-        );
-    }
-
     @GetMapping
     public Page<RoomSummaryDto> getAll(
             @RequestParam(required = false) String status,
@@ -54,13 +37,13 @@ public class RoomApiController extends BaseApiController {
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page) {
         return roomService.findAll(status, jobRole, keyword, page)
-                .map(r -> RoomSummaryDto.from(r, logoBaseUrl()));
+                .map(r -> RoomSummaryDto.from(r, ociStorageService.getLogoBaseUrl()));
     }
 
     @GetMapping("/recent")
     public List<RoomSummaryDto> getRecent(@RequestParam(defaultValue = "6") int limit) {
         return roomService.findRecent(limit).stream()
-                .map(r -> RoomSummaryDto.from(r, logoBaseUrl()))
+                .map(r -> RoomSummaryDto.from(r, ociStorageService.getLogoBaseUrl()))
                 .toList();
     }
 
@@ -72,12 +55,12 @@ public class RoomApiController extends BaseApiController {
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page) {
         return roomService.findByTheme(themeId, status, jobRole, keyword, page)
-                .map(r -> RoomSummaryDto.from(r, logoBaseUrl()));
+                .map(r -> RoomSummaryDto.from(r, ociStorageService.getLogoBaseUrl()));
     }
 
     @GetMapping("/{id}")
     public RoomDetailDto getRoom(@PathVariable Long id) {
-        return RoomDetailDto.from(roomService.findById(id), logoBaseUrl(), true);
+        return RoomDetailDto.from(roomService.findById(id), ociStorageService.getLogoBaseUrl(), true);
     }
 
     @PostMapping
@@ -129,7 +112,7 @@ public class RoomApiController extends BaseApiController {
         long pendingCount = appDtos.stream().filter(a -> ApplicationStatus.PENDING.name().equals(a.getStatus())).count();
         long approvedCount = appDtos.stream().filter(a -> ApplicationStatus.APPROVED.name().equals(a.getStatus())).count();
         ManageDto dto = new ManageDto(
-                RoomDetailDto.from(room, logoBaseUrl(), true),
+                RoomDetailDto.from(room, ociStorageService.getLogoBaseUrl(), true),
                 appDtos,
                 pendingCount,
                 approvedCount

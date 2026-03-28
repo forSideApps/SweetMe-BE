@@ -5,7 +5,6 @@ import dev.sweetme.service.CompanyService;
 import dev.sweetme.service.OciStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,27 +20,11 @@ public class CompanyController {
     private final CompanyService companyService;
     private final OciStorageService ociStorageService;
 
-    @Value("${app.oci.namespace}")
-    private String namespace;
-
-    @Value("${app.oci.bucket}")
-    private String bucket;
-
-    @Value("${app.oci.region}")
-    private String region;
-
-    private String logoBaseUrl() {
-        return String.format(
-                "https://objectstorage.%s.oraclecloud.com/n/%s/b/%s/o/SweetMe/",
-                region, namespace, bucket
-        );
-    }
-
     /** 프론트엔드에서 사용하는 기존 엔드포인트 유지 */
     @GetMapping("/api/themes")
     public List<CompanyDto> getAll() {
         return companyService.findAll().stream()
-                .map(c -> CompanyDto.from(c, logoBaseUrl()))
+                .map(c -> CompanyDto.from(c, ociStorageService.getLogoBaseUrl()))
                 .toList();
     }
 
@@ -49,7 +32,7 @@ public class CompanyController {
     @GetMapping("/api/admin/companies")
     public List<CompanyDto> adminGetAll() {
         return companyService.findAll().stream()
-                .map(c -> CompanyDto.from(c, logoBaseUrl()))
+                .map(c -> CompanyDto.from(c, ociStorageService.getLogoBaseUrl()))
                 .toList();
     }
 
@@ -68,7 +51,7 @@ public class CompanyController {
         }
 
         var company = companyService.create(name, slug, accentColor, displayOrder);
-        return ResponseEntity.ok(CompanyDto.from(company, logoBaseUrl()));
+        return ResponseEntity.ok(CompanyDto.from(company, ociStorageService.getLogoBaseUrl()));
     }
 
     /** 어드민: 회사 순서 일괄 저장 */
@@ -95,7 +78,7 @@ public class CompanyController {
         }
 
         var company = companyService.update(id, name, slug, accentColor, displayOrder);
-        return ResponseEntity.ok(CompanyDto.from(company, logoBaseUrl()));
+        return ResponseEntity.ok(CompanyDto.from(company, ociStorageService.getLogoBaseUrl()));
     }
 
     /** 어드민: 회사 삭제 */

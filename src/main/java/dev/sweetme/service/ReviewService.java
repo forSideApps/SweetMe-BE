@@ -2,16 +2,11 @@ package dev.sweetme.service;
 
 import dev.sweetme.domain.Review;
 import dev.sweetme.domain.enums.CareerLevel;
-import dev.sweetme.domain.enums.ExchangeStatus;
 import dev.sweetme.domain.enums.ReviewJobCategory;
 import dev.sweetme.domain.enums.ReviewStatus;
 import dev.sweetme.domain.enums.ReviewType;
-import dev.sweetme.domain.ReviewComment;
-import dev.sweetme.dto.CommentRequest;
 import dev.sweetme.dto.ReviewRequest;
 import dev.sweetme.dto.ReviewUpdateRequest;
-import dev.sweetme.domain.ReviewExchange;
-import dev.sweetme.repository.ReviewCommentRepository;
 import dev.sweetme.repository.ReviewExchangeRepository;
 import dev.sweetme.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
-    private final ReviewCommentRepository reviewCommentRepository;
     private final ReviewExchangeRepository exchangeRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
@@ -90,73 +84,6 @@ public class ReviewService {
         return review.getPortfolioLink();
     }
 
-    /** 서로보기 신청: PENDING 상태로 요청 생성 */
-    @Transactional
-    public void createExchangeRequest(Long targetReviewId, Long myReviewId, String sessionUsername) {
-        Review myReview = findById(myReviewId);
-        if (!sessionUsername.equals(myReview.getMemberUsername())) {
-            throw new SecurityException("본인의 글만 제공할 수 있습니다.");
-        }
-        Review targetReview = findById(targetReviewId);
-        if (sessionUsername.equals(targetReview.getMemberUsername())) {
-            throw new IllegalArgumentException("자신의 글과는 교환할 수 없습니다.");
-        }
-        if (exchangeRepository.existsByRequesterReviewIdAndTargetReviewId(myReviewId, targetReviewId)) {
-            throw new IllegalArgumentException("이미 서로보기 요청을 보냈습니다.");
-        }
-        exchangeRepository.save(ReviewExchange.builder()
-                .requesterReviewId(myReviewId)
-                .targetReviewId(targetReviewId)
-                .build());
-    }
-
-    /** 서로보기 수락: target 리뷰 소유자만 가능 */
-    @Transactional
-    public void acceptExchange(Long exchangeId, String username) {
-        ReviewExchange exchange = exchangeRepository.findById(exchangeId)
-                .orElseThrow(() -> new IllegalArgumentException("서로보기 요청을 찾을 수 없습니다."));
-        Review targetReview = findById(exchange.getTargetReviewId());
-        if (!username.equals(targetReview.getMemberUsername())) {
-            throw new SecurityException("수락 권한이 없습니다.");
-        }
-        if (exchange.getStatus() != ExchangeStatus.PENDING) {
-            throw new IllegalStateException("이미 처리된 요청입니다.");
-        }
-        exchange.accept();
-    }
-
-    /** 서로보기 거절: Oracle CHECK 제약 우회를 위해 레코드 삭제 */
-    @Transactional
-    public void rejectExchange(Long exchangeId, String username) {
-        ReviewExchange exchange = exchangeRepository.findById(exchangeId)
-                .orElseThrow(() -> new IllegalArgumentException("서로보기 요청을 찾을 수 없습니다."));
-        if (exchange.getStatus() != ExchangeStatus.PENDING) {
-            throw new IllegalStateException("이미 처리된 요청입니다.");
-        }
-        Review targetReview = findById(exchange.getTargetReviewId());
-        String targetOwner = targetReview.getMemberUsername();
-        if (targetOwner == null || !targetOwner.equals(username)) {
-            throw new SecurityException("거절 권한이 없습니다.");
-        }
-        exchangeRepository.delete(exchange);
-    }
-
-    /** 서로보기 보낸 요청 취소: 요청자만 가능, PENDING 상태인 경우만 */
-    @Transactional
-    public void cancelExchange(Long exchangeId, String username) {
-        ReviewExchange exchange = exchangeRepository.findById(exchangeId)
-                .orElseThrow(() -> new IllegalArgumentException("서로보기 요청을 찾을 수 없습니다."));
-        Review requesterReview = findById(exchange.getRequesterReviewId());
-        String requesterOwner = requesterReview.getMemberUsername();
-        if (requesterOwner == null || !requesterOwner.equals(username)) {
-            throw new SecurityException("취소 권한이 없습니다.");
-        }
-        if (exchange.getStatus() != ExchangeStatus.PENDING) {
-            throw new IllegalStateException("이미 처리된 요청입니다.");
-        }
-        exchangeRepository.delete(exchange);
-    }
-
     @Transactional
     public Review update(Long id, ReviewUpdateRequest request) {
         Review review = findById(id);
@@ -188,43 +115,6 @@ public class ReviewService {
     @Transactional
     public void incrementView(Long id) {
         findById(id).incrementViewCount();
-    }
-
-    @Transactional
-    public void addComment(Long reviewId, CommentRequest request, boolean isAdmin, String memberUsername) {
-        Review review = findById(reviewId);
-        ReviewComment comment = ReviewComment.builder()
-                .review(review)
-                .authorName(isAdmin ? "운영자" : request.getAuthorName())
-                .content(request.getContent())
-                .isAdmin(isAdmin)
-                .memberUsername(isAdmin ? null : memberUsername)
-                .build();
-        reviewCommentRepository.save(comment);
-    }
-
-    @Transactional
-    public void updateComment(Long commentId, String content, boolean isAdmin, String memberUsername) {
-        ReviewComment comment = reviewCommentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
-        if (!isAdmin) {
-            if (memberUsername == null || !memberUsername.equals(comment.getMemberUsername())) {
-                throw new SecurityException("수정 권한이 없습니다.");
-            }
-        }
-        comment.updateContent(content);
-    }
-
-    @Transactional
-    public void deleteComment(Long commentId, boolean isAdmin, String memberUsername) {
-        ReviewComment comment = reviewCommentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
-        if (!isAdmin) {
-            if (memberUsername == null || !memberUsername.equals(comment.getMemberUsername())) {
-                throw new SecurityException("삭제 권한이 없습니다.");
-            }
-        }
-        reviewCommentRepository.delete(comment);
     }
 
     public boolean isOwner(Long reviewId, String username) {

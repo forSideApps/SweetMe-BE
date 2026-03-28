@@ -6,6 +6,8 @@ import dev.sweetme.dto.ReviewRequest;
 import dev.sweetme.dto.ReviewUpdateRequest;
 import dev.sweetme.dto.response.ReviewDetailDto;
 import dev.sweetme.dto.response.ReviewSummaryDto;
+import dev.sweetme.service.ReviewCommentService;
+import dev.sweetme.service.ReviewExchangeService;
 import dev.sweetme.service.ReviewService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -23,6 +25,8 @@ import java.util.Map;
 public class ReviewApiController extends BaseApiController {
 
     private final ReviewService reviewService;
+    private final ReviewCommentService reviewCommentService;
+    private final ReviewExchangeService reviewExchangeService;
 
     @GetMapping
     public Page<ReviewSummaryDto> getReviews(
@@ -96,7 +100,7 @@ public class ReviewApiController extends BaseApiController {
         if (memberUsername != null) {
             request.setAuthorName(memberUsername);
         }
-        reviewService.addComment(id, request, isAdmin(httpRequest), memberUsername);
+        reviewCommentService.addComment(id, request, isAdmin(httpRequest), memberUsername);
         return ResponseEntity.ok().build();
     }
 
@@ -107,7 +111,7 @@ public class ReviewApiController extends BaseApiController {
             @RequestBody CommentUpdateRequest request,
             HttpServletRequest httpRequest) {
         try {
-            reviewService.updateComment(commentId, request.getContent(), isAdmin(httpRequest), getSessionUsername(httpRequest));
+            reviewCommentService.updateComment(commentId, request.getContent(), isAdmin(httpRequest), getSessionUsername(httpRequest));
             return ResponseEntity.ok().build();
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -120,7 +124,7 @@ public class ReviewApiController extends BaseApiController {
             @PathVariable Long commentId,
             HttpServletRequest httpRequest) {
         try {
-            reviewService.deleteComment(commentId, isAdmin(httpRequest), getSessionUsername(httpRequest));
+            reviewCommentService.deleteComment(commentId, isAdmin(httpRequest), getSessionUsername(httpRequest));
             return ResponseEntity.ok().build();
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -151,7 +155,7 @@ public class ReviewApiController extends BaseApiController {
         try {
             Long myReviewId = body.get("myReviewId");
             if (myReviewId == null) return ResponseEntity.badRequest().body(Map.of("message", "내 글을 선택해주세요."));
-            reviewService.createExchangeRequest(id, myReviewId, username);
+            reviewExchangeService.createExchangeRequest(id, myReviewId, username);
             return ResponseEntity.ok(Map.of("message", "서로보기 요청이 전송되었습니다. 상대방이 수락하면 링크를 확인할 수 있습니다."));
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
@@ -165,7 +169,7 @@ public class ReviewApiController extends BaseApiController {
         String username = getSessionUsername(request);
         if (username == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "로그인이 필요합니다."));
         try {
-            reviewService.acceptExchange(exchangeId, username);
+            reviewExchangeService.acceptExchange(exchangeId, username);
             return ResponseEntity.ok(Map.of("message", "서로보기 요청을 수락했습니다."));
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
@@ -179,7 +183,7 @@ public class ReviewApiController extends BaseApiController {
         String username = getSessionUsername(request);
         if (username == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "로그인이 필요합니다."));
         try {
-            reviewService.rejectExchange(exchangeId, username);
+            reviewExchangeService.rejectExchange(exchangeId, username);
             return ResponseEntity.ok(Map.of("message", "서로보기 요청을 거절했습니다."));
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
@@ -193,7 +197,7 @@ public class ReviewApiController extends BaseApiController {
         String username = getSessionUsername(request);
         if (username == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "로그인이 필요합니다."));
         try {
-            reviewService.cancelExchange(exchangeId, username);
+            reviewExchangeService.cancelExchange(exchangeId, username);
             return ResponseEntity.ok(Map.of("message", "서로보기 요청을 취소했습니다."));
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
