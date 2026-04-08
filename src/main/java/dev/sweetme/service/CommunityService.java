@@ -62,6 +62,10 @@ public class CommunityService {
         return username.equals(findById(postId).getMemberUsername());
     }
 
+    public boolean isGuestPost(Long postId) {
+        return findById(postId).getMemberUsername() == null;
+    }
+
     @Transactional
     public void updatePost(Long id, String title, String content) {
         findById(id).update(title, content);

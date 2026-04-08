@@ -76,8 +76,12 @@ public class CommunityApiController extends BaseApiController {
             @PathVariable Long id,
             @RequestBody Map<String, String> body,
             HttpServletRequest httpRequest) {
-        if (!isAdmin(httpRequest)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "어드민 권한이 필요합니다."));
+        String username = getSessionUsername(httpRequest);
+        boolean canEdit = isAdmin(httpRequest)
+                || communityService.isOwner(id, username)
+                || communityService.isGuestPost(id);
+        if (!canEdit) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "수정 권한이 없습니다."));
         }
         communityService.updatePost(id, body.get("title"), body.get("content"));
         return ResponseEntity.ok().build();
