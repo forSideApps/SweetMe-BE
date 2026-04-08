@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -22,5 +23,10 @@ public class VisitorController {
     @GetMapping("/api/admin/visitors")
     public Map<String, Long> getStats() {
         return visitorService.getStats();
+    }
+
+    @GetMapping("/api/admin/visitors/daily")
+    public List<Map<String, Object>> getDaily(@RequestParam(defaultValue = "14") int days) {
+        return visitorService.getDailyStats(days);
     }
 }
