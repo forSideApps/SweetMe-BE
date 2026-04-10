@@ -6,8 +6,7 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "visitor_log",
-       uniqueConstraints = @UniqueConstraint(columnNames = {"ip", "visit_date"}))
+@Table(name = "visitor_log")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class VisitorLog {
