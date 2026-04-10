@@ -52,7 +52,7 @@ public class VisitorService {
         }
 
         return map.entrySet().stream()
-                .map(e -> Map.of("date", e.getKey().toString(), "count", e.getValue()))
+                .map(e -> Map.<String, Object>of("date", e.getKey().toString(), "count", e.getValue()))
                 .collect(Collectors.toList());
     }
 }
